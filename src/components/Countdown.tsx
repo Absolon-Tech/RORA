@@ -51,7 +51,9 @@ export function Countdown({ launchISO, enabled }: { launchISO: string; enabled: 
     <section
       id="countdown"
       data-ground="dark"
-      className="relative isolate flex min-h-[86svh] items-center overflow-hidden bg-java text-ivory"
+      // Exactly one viewport, never less: the landing must be the countdown alone, with no strip
+      // of the film showing underneath to pull the eye down before the moment lands.
+      className="relative isolate flex h-[100svh] items-center overflow-hidden bg-java text-ivory"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

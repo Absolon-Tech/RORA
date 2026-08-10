@@ -44,7 +44,11 @@ function usePrefersReducedMotion() {
 
 type Phase = 'settle' | 'bleed' | 'hold' | 'exit' | 'done';
 
-export function Opening({ onDone }: { onDone: () => void }) {
+/**
+ * Takes no callback: the page beneath is already painted and opaque from the first frame, so
+ * nothing downstream needs to wait for the curtain. It simply lifts.
+ */
+export function Opening() {
   const reduced = usePrefersReducedMotion();
   const [phase, setPhase] = useState<Phase>('settle');
   const timers = useRef<number[]>([]);
@@ -53,7 +57,6 @@ export function Opening({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     if (reduced) {
       finished.current = true;
-      onDone();
       return;
     }
 
@@ -66,7 +69,7 @@ export function Opening({ onDone }: { onDone: () => void }) {
     at(PHASES.settle + PHASES.bleed + PHASES.hold, () => setPhase('exit'));
     at(PHASES.settle + PHASES.bleed + PHASES.hold + PHASES.exit, () => {
       setPhase('done');
-      if (!finished.current) { finished.current = true; onDone(); }
+      finished.current = true;
     });
 
     // Any deliberate interaction jumps to the end rather than making them wait it out.
@@ -77,7 +80,7 @@ export function Opening({ onDone }: { onDone: () => void }) {
       setPhase('exit');
       window.setTimeout(() => {
         setPhase('done');
-        if (!finished.current) { finished.current = true; onDone(); }
+        finished.current = true;
       }, 420);
     };
 
@@ -93,7 +96,7 @@ export function Opening({ onDone }: { onDone: () => void }) {
       window.removeEventListener('keydown', skip);
       window.removeEventListener('pointerdown', skip);
     };
-  }, [reduced, onDone]);
+  }, [reduced]);
 
   if (reduced || phase === 'done') return null;
 
@@ -102,21 +105,41 @@ export function Opening({ onDone }: { onDone: () => void }) {
   return (
     <div
       aria-hidden
-      className="fixed inset-0 z-[150] flex items-center justify-center"
+      className="fixed inset-0 z-[150] flex items-center justify-center overflow-hidden"
       style={{
-        // The single long bleed. One property, one curve, no steps.
-        backgroundColor: bled ? '#4A2E27' : '#F5F1E6',
-        transition: `background-color ${PHASES.bleed}ms cubic-bezier(0.45, 0, 0.15, 1)`,
+        // The ground stays ivory. The coffee arrives as a spreading body of colour, below.
+        backgroundColor: '#F5F1E6',
         opacity: phase === 'exit' ? 0 : 1,
-        // The curtain lift is its own, later curve so it never overlaps the colour move.
-        transitionProperty: 'background-color, opacity',
-        transitionDuration: `${PHASES.bleed}ms, ${PHASES.exit}ms`,
-        transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.15, 1), cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: `opacity ${PHASES.exit}ms cubic-bezier(0.4, 0, 0.2, 1)`,
         pointerEvents: phase === 'exit' ? 'none' : 'auto',
       }}
     >
+      {/*
+        The colour does not simply cross-fade — it spreads.
+        A soft body of coffee blooms outward from behind the wordmark until it has taken the whole
+        frame. Heavily blurred so the leading edge is a wash rather than a visible disc, and eased
+        with a long tail so it decelerates into stillness instead of arriving and stopping.
+        This is what makes the change read as a process that happened, rather than a state that
+        was swapped.
+      */}
       <div
-        className="relative w-[min(46vw,300px)]"
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-0"
+        style={{
+          width: '150vmax',
+          height: '150vmax',
+          marginLeft: '-75vmax',
+          marginTop: '-75vmax',
+          borderRadius: '50%',
+          backgroundColor: '#4A2E27',
+          filter: 'blur(60px)',
+          transform: bled ? 'scale(1.05)' : 'scale(0)',
+          opacity: bled ? 1 : 0.85,
+          transition: `transform ${PHASES.bleed}ms cubic-bezier(0.33, 0, 0.12, 1), opacity ${Math.round(PHASES.bleed * 0.35)}ms ease-out`,
+          willChange: 'transform',
+        }}
+      />
+      <div
+        className="relative z-10 w-[min(46vw,300px)]"
         style={{
           opacity: phase === 'settle' ? 0 : 1,
           transform: phase === 'settle' ? 'scale(0.985)' : 'scale(1)',

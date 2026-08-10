@@ -65,6 +65,10 @@ export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }
   const progressRef = useRef(0);
   const [ready, setReady] = useState(false);
   const [pct, setPct] = useState(0);
+  /** Per-frame relative detail, used to settle on a crisp frame when the user stops. */
+  const detailRef = useRef<number[] | null>(null);
+  const idleRef = useRef<number>(0);
+  const settleRef = useRef<number>(0);
 
   /* ---------- load, progressively ---------- */
   useEffect(() => {
@@ -213,12 +217,69 @@ export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, reducedMotion]);
 
+  /* ---------- the film is in motion, so held frames can land on a blurred one ----------
+   *
+   * The footage carries real motion blur. Stop scrolling to read a line and you may be parked on
+   * a smeared frame, which looks like the site is out of focus rather than like cinema.
+   *
+   * `detail.json` carries each frame's relative encoded detail (measured offline: at fixed
+   * quality, a sharper frame keeps more high-frequency information and encodes larger). Absolute
+   * values track content as much as focus, so we only ever compare LOCALLY — the crispest frame
+   * within a few either side. When scrolling stops we ease onto it. The move is small enough to
+   * read as the camera settling, never as a jump, and any new scroll cancels it immediately.
+   */
+  useEffect(() => {
+    if (reducedMotion) return;
+    let alive = true;
+    fetch('/frames/detail.json')
+      .then((r) => r.json())
+      .then((j: { count: number; detail: number[] }) => {
+        if (alive && Array.isArray(j?.detail)) detailRef.current = j.detail;
+      })
+      .catch(() => { /* settling is an enhancement; the scrub works without it */ });
+    return () => { alive = false; };
+  }, [reducedMotion]);
+
+  /** Nearest locally-crispest frame index, or null if there is nothing better to move to. */
+  const crispestNear = (frame: number): number | null => {
+    const detail = detailRef.current;
+    if (!detail) return null;
+    // The manifest is indexed against the 240-frame master; map if we are on the mobile tier.
+    const scale = detail.length / tierRef.current.count;
+    const master = Math.round(frame * scale);
+    const RADIUS = 5;
+    let best = master, bestV = -1;
+    for (let i = Math.max(0, master - RADIUS); i <= Math.min(detail.length - 1, master + RADIUS); i++) {
+      if (detail[i] > bestV) { bestV = detail[i]; best = i; }
+    }
+    const target = best / scale;
+    return Math.abs(target - frame) < 0.6 ? null : target;
+  };
+
   /* ---------- pin + scrub ---------- */
   useEffect(() => {
     if (reducedMotion || !ready) return;
     const track = trackRef.current;
     if (!track) return;
     draw(0);
+
+    const settle = () => {
+      const last = tierRef.current.count - 1;
+      const from = progressRef.current;
+      const target = crispestNear(from * last);
+      if (target === null) return;
+      const to = Math.max(0, Math.min(1, target / last));
+      const start = performance.now();
+      const DURATION = 420;
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / DURATION);
+        const eased = 1 - Math.pow(1 - t, 3);
+        draw(from + (to - from) * eased);
+        if (t < 1) settleRef.current = requestAnimationFrame(tick);
+      };
+      settleRef.current = requestAnimationFrame(tick);
+    };
+
     const st = ScrollTrigger.create({
       trigger: track,
       start: 'top top',
@@ -226,10 +287,21 @@ export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }
       pin: track.firstElementChild as HTMLElement,
       pinSpacing: false,
       scrub: 0.7,
-      onUpdate: (self) => draw(self.progress),
+      onUpdate: (self) => {
+        // Any movement cancels a settle in progress — the finger always wins.
+        cancelAnimationFrame(settleRef.current);
+        clearTimeout(idleRef.current);
+        draw(self.progress);
+        idleRef.current = window.setTimeout(settle, 200);
+      },
       onRefresh: () => draw(progressRef.current),
     });
-    return () => { st.kill(); };
+
+    return () => {
+      st.kill();
+      clearTimeout(idleRef.current);
+      cancelAnimationFrame(settleRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, reducedMotion]);
 

@@ -1,11 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Bodoni_Moda, Jost } from "next/font/google";
+import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 
-const display = Bodoni_Moda({
+/**
+ * Cormorant Garamond — a roman garalde. Chosen over a Didone deliberately: Bodoni's hairlines are
+ * dramatic but fragile, and at the sizes this page uses them they read thin rather than rich, and
+ * strain on a phone. A Garamond keeps the classical, expensive letterforms while holding real
+ * weight in the stroke, so it stays warm and genuinely legible.
+ *
+ * Set at 500/600 rather than 300 — the light cuts are beautiful but disappear on a dark ground.
+ */
+const display = Cormorant_Garamond({
   variable: "--font-display-src",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   display: "swap",
 });
