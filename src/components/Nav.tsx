@@ -16,24 +16,46 @@ const PROBE_Y = 34;
 
 export function Nav() {
   const [dark, setDark] = useState(true);
+  const [hidden, setHidden] = useState(false);
   const current = useRef(true);
+  const hiddenRef = useRef(false);
+  const lastY = useRef(0);
 
   useEffect(() => {
     const grounds = Array.from(document.querySelectorAll<HTMLElement>('[data-ground]'));
-    if (!grounds.length) return;
     let frame = 0;
 
     const measure = () => {
       frame = 0;
-      let next = true;
+      const y = window.scrollY;
+
+      // Ground beneath the mark, for the colour swap.
+      let nextDark = true;
       for (const el of grounds) {
         const r = el.getBoundingClientRect();
-        if (r.top <= PROBE_Y && r.bottom > PROBE_Y) next = el.dataset.ground === 'dark';
+        if (r.top <= PROBE_Y && r.bottom > PROBE_Y) nextDark = el.dataset.ground === 'dark';
       }
-      if (current.current !== next) { current.current = next; setDark(next); }
+      if (current.current !== nextDark) { current.current = nextDark; setDark(nextDark); }
+
+      /**
+       * A transparent fixed header will always collide with something eventually — every line of
+       * the page passes through its band on the way up. Padding cannot fix that; the header has
+       * to move.
+       *
+       * So it withdraws while you are reading forward and returns the moment you reach back for
+       * it, and is always present at the top. The threshold keeps it from twitching on the small
+       * jitters a trackpad produces.
+       */
+      const delta = y - lastY.current;
+      if (Math.abs(delta) > 6) {
+        const next = y > 140 && delta > 0;
+        if (hiddenRef.current !== next) { hiddenRef.current = next; setHidden(next); }
+        lastY.current = y;
+      }
     };
 
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    lastY.current = window.scrollY;
     measure();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
@@ -49,7 +71,12 @@ export function Nav() {
       className="pointer-events-none fixed inset-x-0 top-0 z-[120]"
       style={{
         color: dark ? 'var(--color-ivory)' : 'var(--color-java)',
-        transition: 'color 900ms cubic-bezier(0.22,1,0.36,1)',
+        // Lifts clear rather than fading: a half-transparent mark sitting over a headline reads
+        // as a mistake, where an absent one reads as deliberate.
+        transform: hidden ? 'translate3d(0, -115%, 0)' : 'translate3d(0, 0, 0)',
+        transition:
+          'color 900ms cubic-bezier(0.22,1,0.36,1), transform 700ms cubic-bezier(0.22,1,0.36,1)',
+        willChange: 'transform',
       }}
     >
       <nav className="shell flex items-center justify-between py-7 sm:py-9">
