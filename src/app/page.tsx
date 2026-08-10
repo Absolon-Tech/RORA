@@ -48,7 +48,33 @@ export default function Page() {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
-    window.scrollTo(0, 0);
+    // One reset is not enough. The browser restores its offset around load, and ScrollTrigger
+    // re-measures when it installs the pin — either can land us mid-film. We reset now, again on
+    // load, and once more after the pin has settled, then stop. Guarded so it can never fight a
+    // visitor who has genuinely started scrolling.
+    let cancelled = false;
+    const top = () => { if (!cancelled && window.scrollY > 0) window.scrollTo(0, 0); };
+
+    top();
+    const t1 = window.setTimeout(top, 60);
+    const t2 = window.setTimeout(top, 260);
+    window.addEventListener('load', top, { once: true });
+
+    // From here on the visitor owns the scroll.
+    const release = () => { cancelled = true; };
+    const t3 = window.setTimeout(release, 700);
+    window.addEventListener('wheel', release, { passive: true, once: true });
+    window.addEventListener('touchstart', release, { passive: true, once: true });
+    window.addEventListener('keydown', release, { once: true });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+      window.removeEventListener('load', top);
+      window.removeEventListener('wheel', release);
+      window.removeEventListener('touchstart', release);
+      window.removeEventListener('keydown', release);
+    };
   }, []);
 
   const toggle = useCallback(

@@ -123,18 +123,21 @@ export function Opening() {
         was swapped.
       */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-0"
+        className="pointer-events-none absolute inset-x-0 bottom-0"
         style={{
-          width: '150vmax',
-          height: '150vmax',
-          marginLeft: '-75vmax',
-          marginTop: '-75vmax',
-          borderRadius: '50%',
-          backgroundColor: '#4A2E27',
-          filter: 'blur(60px)',
-          transform: bled ? 'scale(1.05)' : 'scale(0)',
-          opacity: bled ? 1 : 0.85,
-          transition: `transform ${PHASES.bleed}ms cubic-bezier(0.33, 0, 0.12, 1), opacity ${Math.round(PHASES.bleed * 0.35)}ms ease-out`,
+          // Three viewports tall and anchored to the bottom. Only the soft upper edge is ever
+          // allowed to cross the screen — the element's own hard bottom boundary stays far below
+          // the fold at every point in the travel, so no straight line is ever visible.
+          height: '300vh',
+          // Solid through the lower two-thirds, then a long tail. There is no shape to perceive:
+          // a circle, however blurred, still reads as a disc sweeping past, which looks like an
+          // effect. A wash reads as the colour soaking up through the ground.
+          background:
+            'linear-gradient(to top, #4A2E27 0%, #4A2E27 62%, rgba(74,46,39,0.9) 74%, rgba(74,46,39,0.5) 87%, rgba(74,46,39,0) 100%)',
+          // Fully below the fold, then home. Never past it — overshooting is what exposed the edge.
+          transform: bled ? 'translate3d(0, 0, 0)' : 'translate3d(0, 100%, 0)',
+          // Decelerating hard at the end so it settles rather than stops.
+          transition: `transform ${PHASES.bleed}ms cubic-bezier(0.30, 0, 0.10, 1)`,
           willChange: 'transform',
         }}
       />
@@ -162,9 +165,10 @@ export function Opening() {
           className="absolute inset-0 block w-full"
           style={{
             opacity: bled ? 1 : 0,
-            // Centred on the ground's luminance crossover, and brisk enough that the mark is
-            // never ambiguous — but still eased at both ends so nothing snaps.
-            transition: `opacity ${Math.round(PHASES.bleed * 0.42)}ms cubic-bezier(0.4,0,0.2,1) ${Math.round(PHASES.bleed * 0.3)}ms`,
+            // Timed to just precede the wash reaching the mark's own height, so the light form is
+            // already carrying the shape by the time the ground beneath it goes dark. Erring
+            // early is deliberate: light-on-ivory reads for a moment, dark-on-coffee does not.
+            transition: `opacity ${Math.round(PHASES.bleed * 0.3)}ms cubic-bezier(0.4,0,0.2,1) ${Math.round(PHASES.bleed * 0.2)}ms`,
           }}
         />
       </div>
