@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useState, useSyncExternalStore } from 'react';
 
@@ -33,15 +33,15 @@ function usePrefersReducedMotion() {
 
 /**
  * The journey, in order:
- *   arrival (ivory bleeding to coffee) → anticipation (countdown) → the film (scrubbed)
- *   → the collection → the house → the request
+ *   arrival (ivory bleeding to coffee) â†’ anticipation (countdown) â†’ the film (scrubbed)
+ *   â†’ the collection â†’ the house â†’ the request
  *
  * Grounds alternate dark / light / dark so the wordmark always has something to do, and the page
  * breathes between the two cinematic passages.
  */
 export default function Page() {
   const reduced = usePrefersReducedMotion();
-  const [entered, setEntered] = useState(false);
+  const [, setEntered] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
 
   const onDone = useCallback(() => setEntered(true), []);
@@ -54,14 +54,17 @@ export default function Page() {
     <>
       <Opening onDone={onDone} />
 
-      {/* The page is mounted underneath the curtain from the start, so nothing pops in when it
-          lifts and the frame sequence has already begun downloading. */}
-      <div
-        style={{
-          opacity: entered || reduced ? 1 : 0,
-          transition: 'opacity 900ms cubic-bezier(0.22,1,0.36,1)',
-        }}
-      >
+      {/*
+        The page sits under the curtain from the start, fully painted, so the frame sequence is
+        already downloading and nothing pops in when the curtain lifts.
+
+        It is NOT cross-faded in. Fading the page up while the curtain fades out means both are
+        semi-transparent at the midpoint and the ivory document background shows through as a
+        pale flash between the coffee curtain and the dark first section. The curtain simply
+        lifts off an already-opaque page, and the wrapper carries the first section's own ground
+        so there is never a lighter surface behind it.
+      */}
+      <div style={{ backgroundColor: '#231815' }}>
         <Nav />
 
         <main id="main">
@@ -77,8 +80,8 @@ export default function Page() {
           <div className="shell">
             <div aria-hidden className="mb-10 h-px bg-ivory/12" />
             <div className="flex flex-wrap items-center justify-between gap-6 text-ivory/45">
-              <p className="eyebrow">© {new Date().getFullYear()} RORA</p>
-              <p className="eyebrow">Pune — shipping nationwide</p>
+              <p className="eyebrow">Â© {new Date().getFullYear()} RORA</p>
+              <p className="eyebrow">Pune â€” shipping nationwide</p>
               <a
                 href="https://instagram.com/theroraera"
                 target="_blank"
@@ -94,3 +97,4 @@ export default function Page() {
     </>
   );
 }
+

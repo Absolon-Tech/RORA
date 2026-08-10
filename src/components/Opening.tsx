@@ -123,19 +123,15 @@ export function Opening({ onDone }: { onDone: () => void }) {
           transition: `opacity ${PHASES.settle}ms ease-out, transform 2200ms cubic-bezier(0.22,1,0.36,1)`,
         }}
       >
-        {/* Both marks are stacked and cross-faded. The artwork is never recoloured. */}
+        {/*
+          The dark mark stays fully opaque for the whole sequence and the light one fades in on
+          top of it. Cross-fading BOTH would put each at ~50% at the midpoint, and because they
+          are the same artwork the mark visibly washes out exactly when the ground is at its
+          least forgiving. Layering this way keeps coverage at 100% throughout — only the colour
+          changes. The artwork itself is never recoloured.
+        */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/brand/rora-dark.png"
-          alt=""
-          className="block w-full"
-          style={{
-            opacity: bled ? 0 : 1,
-            // Slightly shorter than the bleed and starting a beat later, so the swap lands as the
-            // ground crosses mid-luminance rather than at either end.
-            transition: `opacity ${Math.round(PHASES.bleed * 0.5)}ms ease-in-out ${Math.round(PHASES.bleed * 0.28)}ms`,
-          }}
-        />
+        <img src="/brand/rora-dark.png" alt="" className="block w-full" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/brand/rora-light.png"
@@ -143,7 +139,9 @@ export function Opening({ onDone }: { onDone: () => void }) {
           className="absolute inset-0 block w-full"
           style={{
             opacity: bled ? 1 : 0,
-            transition: `opacity ${Math.round(PHASES.bleed * 0.5)}ms ease-in-out ${Math.round(PHASES.bleed * 0.28)}ms`,
+            // Centred on the ground's luminance crossover, and brisk enough that the mark is
+            // never ambiguous — but still eased at both ends so nothing snaps.
+            transition: `opacity ${Math.round(PHASES.bleed * 0.42)}ms cubic-bezier(0.4,0,0.2,1) ${Math.round(PHASES.bleed * 0.3)}ms`,
           }}
         />
       </div>
