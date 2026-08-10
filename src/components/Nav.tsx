@@ -38,20 +38,16 @@ export function Nav() {
       if (current.current !== nextDark) { current.current = nextDark; setDark(nextDark); }
 
       /**
-       * A transparent fixed header will always collide with something eventually — every line of
-       * the page passes through its band on the way up. Padding cannot fix that; the header has
-       * to move.
+       * The header stays put. A transparent one collides with every line that passes under it,
+       * so instead it earns its own surface: once you are off the top, a very quiet frosted panel
+       * fades in behind it. Blur and a low-opacity tint of whatever ground it is currently over —
+       * enough to separate the mark from a headline, far too little to read as a toolbar.
        *
-       * So it withdraws while you are reading forward and returns the moment you reach back for
-       * it, and is always present at the top. The threshold keeps it from twitching on the small
-       * jitters a trackpad produces.
+       * At the very top there is no panel at all, so the arrival stays completely clean.
        */
-      const delta = y - lastY.current;
-      if (Math.abs(delta) > 6) {
-        const next = y > 140 && delta > 0;
-        if (hiddenRef.current !== next) { hiddenRef.current = next; setHidden(next); }
-        lastY.current = y;
-      }
+      const next = y > 80;
+      if (hiddenRef.current !== next) { hiddenRef.current = next; setHidden(next); }
+      lastY.current = y;
     };
 
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(measure); };
@@ -71,15 +67,31 @@ export function Nav() {
       className="pointer-events-none fixed inset-x-0 top-0 z-[120]"
       style={{
         color: dark ? 'var(--color-ivory)' : 'var(--color-java)',
-        // Lifts clear rather than fading: a half-transparent mark sitting over a headline reads
-        // as a mistake, where an absent one reads as deliberate.
-        transform: hidden ? 'translate3d(0, -115%, 0)' : 'translate3d(0, 0, 0)',
-        transition:
-          'color 900ms cubic-bezier(0.22,1,0.36,1), transform 700ms cubic-bezier(0.22,1,0.36,1)',
-        willChange: 'transform',
+        transition: 'color 900ms cubic-bezier(0.22,1,0.36,1)',
       }}
     >
-      <nav className="shell flex items-center justify-between py-7 sm:py-9">
+      {/*
+        The frosted panel. Tinted with the ground it is currently over rather than a neutral grey,
+        so it never reads as a foreign grey bar laid across a warm page. The tint is deliberately
+        low and paired with a hairline instead of a border — the separation should be felt, not
+        seen. `saturate` keeps the plum beneath from going muddy under the blur.
+      */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundColor: dark ? 'rgba(35,24,21,0.42)' : 'rgba(245,241,230,0.5)',
+          backdropFilter: 'blur(16px) saturate(125%)',
+          WebkitBackdropFilter: 'blur(16px) saturate(125%)',
+          maskImage: 'linear-gradient(to bottom, black 62%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 62%, transparent 100%)',
+          opacity: hidden ? 1 : 0,
+          transition:
+            'opacity 700ms cubic-bezier(0.22,1,0.36,1), background-color 900ms cubic-bezier(0.22,1,0.36,1)',
+        }}
+      />
+
+      <nav className="shell relative flex items-center justify-between py-7 sm:py-9">
         {/* The mark carries the brand, so it is given real presence rather than being tucked
             into a corner. Still no bar, no background — the chrome stays invisible. */}
         <a
