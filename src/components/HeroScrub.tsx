@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -47,6 +47,18 @@ const BEATS = [
   { from: 0.80, to: 1.0, line: 'Seven pieces. One first run.', place: 'centre' },
 ] as const;
 
+/**
+ * The film finishes before the scroll does.
+ *
+ * Mapping the last frame to the very end of the track meant the complete suit appeared and was
+ * immediately carried off — no time to actually look at it. Frames now finish at 76% of the
+ * track, and the remaining 24% (roughly two unhurried scrolls at a 700svh track) holds on the
+ * finished silhouette before the section releases.
+ */
+const FILM_ENDS_AT = 0.76;
+
+const filmProgress = (raw: number) => Math.min(1, raw / FILM_ENDS_AT);
+
 /** Fade in, hold, fade out across a window. */
 function beatOpacity(p: number, from: number, to: number) {
   if (p <= from || p >= to) return 0;
@@ -55,7 +67,41 @@ function beatOpacity(p: number, from: number, to: number) {
   return Math.min(1, Math.min(t / edge, (1 - t) / edge));
 }
 
+/**
+ * Touch devices get a different interaction entirely.
+ *
+ * Scrubbing a pinned section with a thumb is genuinely awkward: momentum overshoots, the browser
+ * chrome collapses mid-gesture and re-measures the pin, and the finger covers the thing it is
+ * revealing. Press-and-hold is calmer and more tactile — you hold, the film unfolds; you let go,
+ * it waits. Nothing is pinned, so native scrolling is never touched.
+ */
+const COARSE = '(pointer: coarse)';
+
+function subscribeCoarse(cb: () => void) {
+  const mq = window.matchMedia(COARSE);
+  mq.addEventListener('change', cb);
+  return () => mq.removeEventListener('change', cb);
+}
+
+function usePointerCoarse() {
+  return useSyncExternalStore(
+    subscribeCoarse,
+    () => window.matchMedia(COARSE).matches,
+    () => false,
+  );
+}
+
+/** Continuous holding needed to run the whole film, in ms. Close to the source's own 10s. */
+const HOLD_DURATION = 11000;
+
 export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }) {
+  const coarse = usePointerCoarse();
+  const holdRef = useRef(0);
+  const heldRef = useRef(false);
+  const lastTsRef = useRef(0);
+  const holdRafRef = useRef(0);
+  const barRef = useRef<HTMLSpanElement | null>(null);
+  const [holdDone, setHoldDone] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beatRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -256,9 +302,48 @@ export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }
     return Math.abs(target - frame) < 0.6 ? null : target;
   };
 
-  /* ---------- pin + scrub ---------- */
+  /* ---------- touch: press and hold ---------- */
+  const tick = (ts: number) => {
+    if (!heldRef.current) return;
+    const dt = lastTsRef.current ? ts - lastTsRef.current : 16;
+    lastTsRef.current = ts;
+
+    holdRef.current = Math.min(1, holdRef.current + dt / HOLD_DURATION);
+    draw(holdRef.current);
+    if (barRef.current) barRef.current.style.width = `${holdRef.current * 100}%`;
+
+    if (holdRef.current >= 1) {
+      heldRef.current = false;
+      setHoldDone(true);
+      return;
+    }
+    holdRafRef.current = requestAnimationFrame(tick);
+  };
+
+  const startHold = () => {
+    if (holdRef.current >= 1) return;
+    heldRef.current = true;
+    lastTsRef.current = 0;
+    cancelAnimationFrame(holdRafRef.current);
+    holdRafRef.current = requestAnimationFrame(tick);
+  };
+
+  const endHold = () => {
+    heldRef.current = false;
+    cancelAnimationFrame(holdRafRef.current);
+  };
+
+  useEffect(() => () => cancelAnimationFrame(holdRafRef.current), []);
+
+  // First paint for the hold layout, once frames are in.
   useEffect(() => {
-    if (reducedMotion || !ready) return;
+    if (coarse && ready && !reducedMotion) draw(holdRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coarse, ready, reducedMotion]);
+
+  /* ---------- pointer: pin + scrub ---------- */
+  useEffect(() => {
+    if (reducedMotion || coarse || !ready) return;
     const track = trackRef.current;
     if (!track) return;
     draw(0);
@@ -291,7 +376,7 @@ export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }
         // Any movement cancels a settle in progress — the finger always wins.
         cancelAnimationFrame(settleRef.current);
         clearTimeout(idleRef.current);
-        draw(self.progress);
+        draw(filmProgress(self.progress));
         idleRef.current = window.setTimeout(settle, 200);
       },
       onRefresh: () => draw(progressRef.current),
@@ -303,7 +388,68 @@ export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }
       cancelAnimationFrame(settleRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, reducedMotion]);
+  }, [ready, reducedMotion, coarse]);
+
+  /* ---------- touch layout: one screen, held rather than scrubbed ---------- */
+  if (coarse && !reducedMotion) {
+    return (
+      <section id="film" data-ground="dark" className="relative h-[100svh] w-full overflow-hidden bg-[#0E0A09]">
+        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden />
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: 'radial-gradient(115% 75% at 50% 40%, transparent 45%, rgba(14,10,9,0.72) 100%)' }}
+        />
+
+        {BEATS.map((b, i) => (
+          <div
+            key={b.line}
+            ref={(el) => { beatRefs.current[i] = el; }}
+            className="pointer-events-none absolute inset-x-6 top-[14svh] z-10 text-ivory"
+            style={{ opacity: 0, visibility: 'hidden', willChange: 'opacity, transform' }}
+          >
+            <p className="display-lg max-w-[14em]" style={{ textShadow: '0 2px 40px rgba(14,10,9,0.6)' }}>
+              {b.line}
+            </p>
+          </div>
+        ))}
+
+        {/*
+          The hold target. `touch-action: none` so the gesture is ours and the page never scrolls
+          underneath a held finger; everything outside this strip scrolls completely normally.
+        */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Press and hold to play the film"
+          onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); startHold(); }}
+          onPointerUp={endHold}
+          onPointerCancel={endHold}
+          onPointerLeave={endHold}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startHold(); } }}
+          onKeyUp={endHold}
+          className="absolute inset-x-0 bottom-0 z-20 flex h-[34svh] select-none flex-col items-center justify-end pb-12"
+          style={{ touchAction: 'none' }}
+        >
+          <span className="eyebrow mb-5 text-ivory/70">
+            {holdDone ? 'Scroll on' : 'Press and hold'}
+          </span>
+          <span aria-hidden className="relative block h-px w-[58%] max-w-[280px] bg-ivory/20">
+            <span ref={barRef} className="absolute inset-y-0 left-0 block bg-ivory/70" style={{ width: '0%' }} />
+          </span>
+        </div>
+
+        {!ready && (
+          <div className="absolute inset-x-0 top-0 z-20 h-px bg-ivory/10">
+            <div className="h-full bg-ivory/45 transition-[width] duration-500 ease-out" style={{ width: `${pct}%` }} />
+          </div>
+        )}
+
+        <div className="sr-only">{BEATS.map((b) => <p key={b.line}>{b.line}</p>)}</div>
+      </section>
+    );
+  }
 
   /* ---------- reduced motion: one still, full narrative as text ---------- */
   if (reducedMotion) {
@@ -327,7 +473,9 @@ export function HeroScrub({ reducedMotion = false }: { reducedMotion?: boolean }
       id="film"
       ref={trackRef}
       data-ground="dark"
-      className="relative h-[520svh] bg-[#0E0A09]"
+      // Longer than the film needs on purpose: the extra distance is what buys the unhurried
+      // scroll rate through the sequence and the held beat on the finished suit at the end.
+      className="relative h-[700svh] bg-[#0E0A09]"
       aria-label="The RORA suit, in film"
     >
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">

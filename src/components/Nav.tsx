@@ -52,8 +52,14 @@ export function Nav() {
         transition: 'color 900ms cubic-bezier(0.22,1,0.36,1)',
       }}
     >
-      <nav className="shell flex items-center justify-between py-5 sm:py-7">
-        <a href="#top" aria-label="RORA — top" className="pointer-events-auto relative block h-[18px] w-[54px] sm:h-[21px] sm:w-[62px]">
+      <nav className="shell flex items-center justify-between py-7 sm:py-9">
+        {/* The mark carries the brand, so it is given real presence rather than being tucked
+            into a corner. Still no bar, no background — the chrome stays invisible. */}
+        <a
+          href="#top"
+          aria-label="RORA — top"
+          className="pointer-events-auto relative block h-[30px] w-[92px] sm:h-[38px] sm:w-[116px]"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/brand/rora-dark.png"
@@ -72,7 +78,7 @@ export function Nav() {
 
         <a
           href="#interest"
-          className="eyebrow pointer-events-auto border-b border-current pb-1 opacity-70 transition-opacity duration-500 hover:opacity-100"
+          className="eyebrow pointer-events-auto border-b border-current pb-1.5 text-[0.75rem] opacity-75 transition-opacity duration-500 hover:opacity-100"
         >
           Request access
         </a>
