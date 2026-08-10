@@ -55,17 +55,41 @@ export function Countdown({ launchISO, enabled }: { launchISO: string; enabled: 
       // of the film showing underneath to pull the eye down before the moment lands.
       className="relative isolate flex h-[100svh] items-center overflow-hidden bg-java text-ivory"
     >
+      {/*
+        A portrait photograph in a full-width band, so it is anchored right-of-centre rather than
+        centred — the three figures sit clear of the type instead of behind it.
+      */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/countdown-ground.jpg"
         alt=""
         aria-hidden
-        className="absolute inset-0 -z-10 h-full w-full object-cover opacity-45"
+        className="absolute inset-0 -z-10 h-full w-full object-cover"
+        style={{ objectPosition: '72% 28%' }}
       />
+      {/*
+        Two scrims doing different jobs. The horizontal one is heavy on the left where the
+        headline and clock sit and clears to almost nothing on the right, so the photograph is
+        actually visible rather than uniformly dimmed. The second is a warm Potting Soil wash that
+        pulls the image's cool blues and whites back towards the palette without touching the file.
+      */}
       <div
         aria-hidden
         className="absolute inset-0 -z-10"
-        style={{ background: 'linear-gradient(180deg, rgba(35,24,21,0.55) 0%, rgba(35,24,21,0.8) 100%)' }}
+        style={{
+          background:
+            'linear-gradient(100deg, rgba(35,24,21,0.95) 0%, rgba(35,24,21,0.88) 32%, rgba(35,24,21,0.55) 62%, rgba(35,24,21,0.28) 100%)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 mix-blend-multiply"
+        style={{ backgroundColor: 'rgba(74,46,39,0.42)' }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 -z-10 h-40"
+        style={{ background: 'linear-gradient(180deg, rgba(35,24,21,0) 0%, rgba(35,24,21,0.85) 100%)' }}
       />
 
       <div className="shell w-full">
