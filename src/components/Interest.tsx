@@ -5,15 +5,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { SIZES, type Piece } from '@/lib/content';
 
 /**
- * The request.
- *
- * Asked one question at a time, at display size, the way a person would ask it — not a stack of
- * labelled boxes. Enter moves you on. Nothing is ever more than one thought.
- *
- * Every question earns its place: a name to address them by, an email and a number to reach them
- * on, a city because the run ships nationwide and we need to know where, and a size because the
- * first run is cut in small numbers and this is what decides the ratios. Age sits beside size on
- * the same step so it costs no extra beat.
+ * The Interest Request Form (Beige Theme):
+ * Styled in warm beige (#EDE7DE) background with rich dark (#1C1614) typography,
+ * subtle hairlines, dark buttons, and seamless input contrast.
  */
 
 type StepKey = 'name' | 'email' | 'whatsapp' | 'city' | 'fit' | 'review';
@@ -107,18 +101,18 @@ export function Interest({ pieces, selected }: { pieces: Piece[]; selected: stri
   /* ---------------- accepted ---------------- */
   if (status === 'done') {
     return (
-      <section id="interest" data-ground="dark" className="flex min-h-[92svh] items-center bg-soil text-ivory">
+      <section id="interest" data-ground="light" data-nav-bg="#EDE7DE" className="flex min-h-[92svh] items-center bg-[#EDE7DE] text-[#1C1614]">
         <div className="shell text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}>
-            <p className="eyebrow text-ivory/50">Received</p>
-            <h2 className="display-lg mx-auto mt-8 max-w-[18ch]">
+            <p className="eyebrow text-[#1C1614]/50">Received</p>
+            <h2 className="display-lg mx-auto mt-8 max-w-[18ch] text-[#1C1614]">
               You are on the list, <em className="italic">{form.name.split(' ')[0]}</em>.
             </h2>
-            <p className="lede mx-auto mt-8 max-w-[42ch] text-ivory/60">
+            <p className="lede mx-auto mt-8 max-w-[42ch] text-[#1C1614]/70">
               You will hear from us before the run opens — and you will have first claim on your size.
             </p>
             {marked.length > 0 && (
-              <p className="eyebrow mx-auto mt-12 max-w-[52ch] text-ivory/40">
+              <p className="eyebrow mx-auto mt-12 max-w-[52ch] text-[#1C1614]/50">
                 Held for you — {marked.map((p) => p.name).join(' · ')}
               </p>
             )}
@@ -130,14 +124,14 @@ export function Interest({ pieces, selected }: { pieces: Piece[]; selected: stri
 
   /* ---------------- the ask ---------------- */
   return (
-    <section id="interest" data-ground="dark" className="flex min-h-[100svh] items-center bg-soil text-ivory">
+    <section id="interest" data-ground="light" data-nav-bg="#EDE7DE" className="flex min-h-[100svh] items-center bg-[#EDE7DE] text-[#1C1614]">
       <div className="shell w-full">
-        {/* Progress — a hairline and a numeral. No stepper dots. */}
+        {/* Progress — a hairline and a numeral */}
         <div className="mb-14 flex items-center gap-6">
-          <span className="eyebrow text-ivory/40">{step.numeral} / VI</span>
-          <span aria-hidden className="relative h-px flex-1 bg-ivory/15">
+          <span className="eyebrow text-[#1C1614]/50">{step.numeral} / VI</span>
+          <span aria-hidden className="relative h-px flex-1 bg-[#1C1614]/15">
             <motion.span
-              className="absolute inset-y-0 left-0 bg-ivory/60"
+              className="absolute inset-y-0 left-0 bg-[#1C1614]/80"
               animate={{ width: `${((i + 1) / STEPS.length) * 100}%` }}
               transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             />
@@ -152,21 +146,60 @@ export function Interest({ pieces, selected }: { pieces: Piece[]; selected: stri
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h2 className="display-lg max-w-[20ch]">{step.ask}</h2>
-            {step.hint && <p className="lede mt-6 max-w-[44ch] text-ivory/45">{step.hint}</p>}
+            <h2 className="display-lg max-w-[20ch] text-[#1C1614]">{step.ask}</h2>
+            {step.hint && <p className="lede mt-6 max-w-[44ch] text-[#1C1614]/65">{step.hint}</p>}
 
             <div className="mt-14 max-w-[34rem]">
               {step.key === 'name' && (
-                <input autoFocus className="field" value={form.name} onChange={(e) => set('name', e.target.value)} onKeyDown={onKey} placeholder="Your name" autoComplete="name" aria-label="Your name" />
+                <input
+                  autoFocus
+                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
+                  value={form.name}
+                  onChange={(e) => set('name', e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder="Your name"
+                  autoComplete="name"
+                  aria-label="Your name"
+                />
               )}
               {step.key === 'email' && (
-                <input autoFocus type="email" className="field" value={form.email} onChange={(e) => set('email', e.target.value)} onKeyDown={onKey} placeholder="you@example.com" autoComplete="email" aria-label="Email address" />
+                <input
+                  autoFocus
+                  type="email"
+                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
+                  value={form.email}
+                  onChange={(e) => set('email', e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  aria-label="Email address"
+                />
               )}
               {step.key === 'whatsapp' && (
-                <input autoFocus type="tel" inputMode="tel" className="field" value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} onKeyDown={onKey} placeholder="+91" autoComplete="tel" aria-label="WhatsApp number" />
+                <input
+                  autoFocus
+                  type="tel"
+                  inputMode="tel"
+                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
+                  value={form.whatsapp}
+                  onChange={(e) => set('whatsapp', e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder="+91"
+                  autoComplete="tel"
+                  aria-label="WhatsApp number"
+                />
               )}
               {step.key === 'city' && (
-                <input autoFocus className="field" value={form.city} onChange={(e) => set('city', e.target.value)} onKeyDown={onKey} placeholder="Pune, Mumbai, Delhi…" autoComplete="address-level2" aria-label="City" />
+                <input
+                  autoFocus
+                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
+                  value={form.city}
+                  onChange={(e) => set('city', e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder="Pune, Mumbai, Delhi…"
+                  autoComplete="address-level2"
+                  aria-label="City"
+                />
               )}
 
               {step.key === 'fit' && (
@@ -180,11 +213,11 @@ export function Interest({ pieces, selected }: { pieces: Piece[]; selected: stri
                           type="button"
                           onClick={() => set('size', s)}
                           aria-pressed={on}
-                          className="eyebrow border px-6 py-4 transition-colors duration-500"
+                          className="eyebrow border px-6 py-4 transition-colors duration-500 font-medium"
                           style={{
-                            borderColor: on ? 'var(--color-ivory)' : 'rgba(245,241,230,0.25)',
-                            backgroundColor: on ? 'var(--color-ivory)' : 'transparent',
-                            color: on ? 'var(--color-soil)' : 'inherit',
+                            borderColor: on ? '#1C1614' : 'rgba(28,22,20,0.25)',
+                            backgroundColor: on ? '#1C1614' : 'transparent',
+                            color: on ? '#EDE7DE' : '#1C1614',
                           }}
                         >
                           {s}
@@ -193,13 +226,13 @@ export function Interest({ pieces, selected }: { pieces: Piece[]; selected: stri
                     })}
                   </div>
                   <label className="mt-12 block">
-                    <span className="eyebrow text-ivory/40">Age — optional</span>
+                    <span className="eyebrow text-[#1C1614]/50">Age — optional</span>
                     <input
                       type="number"
                       min={13}
                       max={110}
                       inputMode="numeric"
-                      className="field mt-3"
+                      className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors mt-3"
                       value={form.age}
                       onChange={(e) => set('age', e.target.value)}
                       onKeyDown={onKey}
@@ -211,40 +244,49 @@ export function Interest({ pieces, selected }: { pieces: Piece[]; selected: stri
               )}
 
               {step.key === 'review' && (
-                <dl className="grid gap-5 text-ivory/70">
+                <dl className="grid gap-5 text-[#1C1614]/80">
                   {([['Name', form.name], ['Email', form.email], ['WhatsApp', form.whatsapp], ['City', form.city], ['Size', form.size], ['Age', form.age || '—']] as const).map(([k, v]) => (
-                    <div key={k} className="flex items-baseline justify-between gap-6 border-b border-ivory/10 pb-3">
-                      <dt className="eyebrow text-ivory/35">{k}</dt>
-                      <dd className="text-right">{v}</dd>
+                    <div key={k} className="flex items-baseline justify-between gap-6 border-b border-[#1C1614]/15 pb-3">
+                      <dt className="eyebrow text-[#1C1614]/45">{k}</dt>
+                      <dd className="text-right text-[#1C1614] font-medium">{v}</dd>
                     </div>
                   ))}
                   <div className="flex items-baseline justify-between gap-6 pt-1">
-                    <dt className="eyebrow text-ivory/35">Pieces</dt>
-                    <dd className="text-right">{marked.length ? marked.map((p) => p.name).join(', ') : 'None marked yet'}</dd>
+                    <dt className="eyebrow text-[#1C1614]/45">Pieces</dt>
+                    <dd className="text-right text-[#1C1614] font-medium">{marked.length ? marked.map((p) => p.name).join(', ') : 'None marked yet'}</dd>
                   </div>
                 </dl>
               )}
 
-              {/* Honeypot — off-screen, never focusable */}
+              {/* Honeypot — off-screen */}
               <div className="pointer-events-none absolute left-[-9999px]" aria-hidden>
                 <input tabIndex={-1} autoComplete="off" onChange={(e) => { honeypot.current = e.target.value; }} />
               </div>
 
-              {error && <p role="alert" className="mt-5 text-sm text-[#E8B4B8]">{error}</p>}
-              {status === 'failed' && <p role="alert" className="mt-5 text-sm text-[#E8B4B8]">{failMsg}</p>}
+              {error && <p role="alert" className="mt-5 text-sm text-[#8B262A] font-medium">{error}</p>}
+              {status === 'failed' && <p role="alert" className="mt-5 text-sm text-[#8B262A] font-medium">{failMsg}</p>}
 
               <div className="mt-14 flex flex-wrap items-center gap-8">
                 {step.key === 'review' ? (
-                  <button type="button" onClick={send} disabled={status === 'sending'} className="invite invite--onDark">
+                  <button
+                    type="button"
+                    onClick={send}
+                    disabled={status === 'sending'}
+                    className="inline-flex items-center justify-center bg-[#1C1614] text-[#EDE7DE] hover:bg-[#38332E] px-9 py-4 font-semibold text-xs tracking-[0.25em] uppercase transition-all shadow-xl rounded-xs"
+                  >
                     <span>{status === 'sending' ? 'Sending' : 'Request access'}</span>
                   </button>
                 ) : (
-                  <button type="button" onClick={advance} className="invite invite--onDark">
+                  <button
+                    type="button"
+                    onClick={advance}
+                    className="inline-flex items-center justify-center bg-[#1C1614] text-[#EDE7DE] hover:bg-[#38332E] px-9 py-4 font-semibold text-xs tracking-[0.25em] uppercase transition-all shadow-xl rounded-xs"
+                  >
                     <span>Continue</span>
                   </button>
                 )}
                 {i > 0 && (
-                  <button type="button" onClick={back} className="eyebrow text-ivory/40 transition-opacity duration-300 hover:text-ivory/70">
+                  <button type="button" onClick={back} className="eyebrow text-[#1C1614]/50 transition-colors duration-300 hover:text-[#1C1614]">
                     Back
                   </button>
                 )}

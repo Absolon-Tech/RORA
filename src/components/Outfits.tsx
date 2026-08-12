@@ -3,14 +3,21 @@
 import { Reveal } from './Reveal';
 import type { Piece } from '@/lib/content';
 
+const PRICES: Record<string, string> = {
+  suit: '₹48,000',
+  blazer: '₹39,500',
+  'dinner-dress': '₹39,500',
+  trouser: '₹26,000',
+  shirt: '₹32,000',
+  coat: '₹52,000',
+  waistcoat: '₹24,000',
+};
+
 /**
- * The seven.
- *
- * Laid out as an editorial index rather than a product grid: a numeral, a name, a material line,
- * and one sentence. Rows alternate so the eye travels rather than scanning a catalogue.
- *
- * Choosing a piece is framed as marking it, not adding it to a basket — the conversion here is
- * curiosity, not checkout. What is marked follows the visitor down to the request.
+ * The Collection (What's Coming):
+ * 3-column editorial product grid matching Images 1 & 2.
+ * Includes price indicators, material lines, and "NOTIFY ME WHEN THIS DROPS" action buttons
+ * that mark the item and smoothly navigate the customer to the access request form.
  */
 export function Outfits({
   pieces,
@@ -21,73 +28,74 @@ export function Outfits({
   selected: string[];
   onToggle: (id: string) => void;
 }) {
+  const handleSelect = (id: string) => {
+    onToggle(id);
+    const formSection = document.getElementById('interest');
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section id="pieces" data-ground="light" className="bg-ivory py-28 text-java sm:py-40">
+    <section id="pieces" data-ground="light" data-nav-bg="#F5F1E6" className="bg-ivory py-24 text-java sm:py-36">
       <div className="shell">
-        <Reveal as="header" className="mb-20 sm:mb-32">
-          <p className="eyebrow text-sceptre">The collection</p>
-          <h2 className="display-lg mt-7 max-w-[15ch]">
-            Seven pieces. <em className="italic">Nothing spare.</em>
+        <Reveal as="header" className="mb-14 sm:mb-20">
+          <p className="eyebrow text-[0.68rem] tracking-[0.35em] text-sceptre font-medium">FIRST PIECES</p>
+          <h2 className="display-lg mt-3 text-4xl sm:text-6xl lg:text-7xl font-display font-medium text-java">
+            What&apos;s coming.
           </h2>
-          <p className="lede mt-8 max-w-[46ch] opacity-65">
-            A short first run, cut in small numbers. Mark the ones you want — they will travel with
-            you to the request below.
-          </p>
         </Reveal>
 
-        <ol className="grid gap-y-24 sm:gap-y-36">
+        {/* 7-Item Grid matching Images 1 & 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-14 lg:gap-x-10 lg:gap-y-16">
           {pieces.map((piece, i) => {
             const on = selected.includes(piece.id);
-            const flip = i % 2 === 1;
+            const price = PRICES[piece.id] || '₹36,000';
+
             return (
-              <Reveal as="li" key={piece.id} delay={60}>
-                <article
-                  className={`grid items-center gap-8 sm:grid-cols-12 sm:gap-14 ${
-                    flip ? 'sm:[&>figure]:order-2' : ''
-                  }`}
-                >
-                  <figure className={`sm:col-span-5 ${flip ? 'sm:col-start-8' : ''}`}>
-                    <div className="relative aspect-[3/4] w-full overflow-hidden bg-[color-mix(in_srgb,var(--color-soil)_12%,transparent)]">
+              <Reveal key={piece.id} delay={(i % 3) * 100}>
+                <article className="group flex flex-col justify-between">
+                  <div>
+                    {/* Image Container */}
+                    <div className="relative aspect-[3/4] w-full overflow-hidden bg-stone-200">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={piece.image}
                         alt={piece.name}
                         loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-[1600ms] ease-out will-change-transform hover:scale-[1.03]"
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                       />
                     </div>
-                  </figure>
 
-                  <div className={`sm:col-span-6 ${flip ? 'sm:col-start-1 sm:row-start-1' : 'sm:col-start-7'}`}>
-                    <div className="flex items-baseline gap-5">
-                      <span className="eyebrow opacity-40">{piece.numeral}</span>
-                      <span aria-hidden className="h-px flex-1 bg-current opacity-15" />
+                    {/* Name & Price Hairline Row */}
+                    <div className="mt-4 flex items-baseline justify-between gap-2">
+                      <h3 className="font-display text-lg font-medium text-java">{piece.name}</h3>
+                      <span aria-hidden className="h-px flex-1 bg-java/20 mx-2" />
+                      <span className="font-mono text-xs text-java/60 tracking-wider">{price}</span>
                     </div>
 
-                    <h3 className="display-md mt-6">{piece.name}</h3>
-                    <p className="eyebrow mt-4 text-sceptre">{piece.material}</p>
-                    <p className="lede mt-6 max-w-[40ch] opacity-65">{piece.note}</p>
-
-                    <button
-                      type="button"
-                      onClick={() => onToggle(piece.id)}
-                      aria-pressed={on}
-                      className="eyebrow mt-9 inline-flex items-center gap-4 border-b border-current pb-2 transition-opacity duration-500"
-                      style={{ opacity: on ? 1 : 0.55, color: on ? 'var(--color-sceptre)' : 'inherit' }}
-                    >
-                      <span
-                        aria-hidden
-                        className="inline-block h-[7px] w-[7px] rounded-full border border-current transition-colors duration-500"
-                        style={{ backgroundColor: on ? 'currentColor' : 'transparent' }}
-                      />
-                      {on ? 'Marked' : 'Mark this piece'}
-                    </button>
+                    {/* Material Description */}
+                    <p className="mt-1 text-xs text-java/60 font-body leading-relaxed">{piece.material}</p>
                   </div>
+
+                  {/* Notify / Mark Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(piece.id)}
+                    aria-pressed={on}
+                    className={`mt-5 w-full py-3.5 px-4 eyebrow text-[0.625rem] tracking-[0.25em] transition-all duration-300 border ${
+                      on
+                        ? 'bg-sceptre text-ivory border-sceptre shadow-md'
+                        : 'border-java/25 text-java/75 hover:border-java hover:bg-java hover:text-ivory'
+                    }`}
+                  >
+                    {on ? 'MARKED FOR ACCESS' : 'NOTIFY ME WHEN THIS DROPS'}
+                  </button>
                 </article>
               </Reveal>
             );
           })}
-        </ol>
+        </div>
       </div>
     </section>
   );
