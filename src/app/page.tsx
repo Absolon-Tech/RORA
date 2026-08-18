@@ -93,8 +93,8 @@ export default function Page() {
           </div>
 
           {/* Card 5: Interest Request Form (Beige Theme) */}
-          <div className="relative z-50 min-h-[100svh] w-full bg-[#EDE7DE] snap-start">
-            <Interest pieces={CONTENT.pieces} selected={selected} />
+          <div className="relative z-50 min-h-[100svh] w-full bg-[#4D0E12] snap-start">
+            <Interest />
           </div>
 
           {/* Card 6: Manifesto / Roma Section Artwork Stage (Placed RIGHT AFTER THE FORM) */}
