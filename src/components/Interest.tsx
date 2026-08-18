@@ -1,299 +1,225 @@
 'use client';
 
-import { useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { SIZES, type Piece } from '@/lib/content';
+import { useState } from 'react';
 
-/**
- * The Interest Request Form (Beige Theme):
- * Styled in warm beige (#EDE7DE) background with rich dark (#1C1614) typography,
- * subtle hairlines, dark buttons, and seamless input contrast.
- */
+const SANS = "'Inter Tight', 'Inter', sans-serif";
+const SERIF = "'Cormorant Garamond', Georgia, serif";
 
-type StepKey = 'name' | 'email' | 'whatsapp' | 'city' | 'fit' | 'review';
+export function Interest() {
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    favorite: '',
+    notes: '',
+    consent: false,
+  });
+  const [submitted, setSubmitted] = useState(false);
 
-type Form = {
-  name: string;
-  email: string;
-  whatsapp: string;
-  city: string;
-  size: string;
-  age: string;
-};
-
-const STEPS: Array<{ key: StepKey; numeral: string; ask: string; hint?: string }> = [
-  { key: 'name', numeral: 'I', ask: 'First — what should we call you?' },
-  { key: 'email', numeral: 'II', ask: 'Where should the first look arrive?', hint: 'One message when the run opens. Nothing else.' },
-  { key: 'whatsapp', numeral: 'III', ask: 'And a number, for the early word.', hint: 'WhatsApp. Only if something is genuinely worth telling you.' },
-  { key: 'city', numeral: 'IV', ask: 'Which city are we sending it to?', hint: 'Cut in Pune. Sent anywhere in India.' },
-  { key: 'fit', numeral: 'V', ask: 'And how do you usually wear it?', hint: 'This decides how many of each we cut.' },
-  { key: 'review', numeral: 'VI', ask: 'That is everything.' },
-];
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const PHONE_RE = /^[+\d][\d\s()\-.]{6,}$/;
-
-export function Interest({ pieces, selected }: { pieces: Piece[]; selected: string[] }) {
-  const [i, setI] = useState(0);
-  const [form, setForm] = useState<Form>({ name: '', email: '', whatsapp: '', city: '', size: '', age: '' });
-  const [error, setError] = useState('');
-  const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'failed'>('idle');
-  const [failMsg, setFailMsg] = useState('');
-  const honeypot = useRef('');
-
-  const step = STEPS[i];
-  const marked = useMemo(() => pieces.filter((p) => selected.includes(p.id)), [pieces, selected]);
-
-  const set = (k: keyof Form, v: string) => { setForm((f) => ({ ...f, [k]: v })); setError(''); };
-
-  function validate(): string {
-    switch (step.key) {
-      case 'name':
-        return form.name.trim().length >= 2 ? '' : 'A name, however short.';
-      case 'email':
-        return EMAIL_RE.test(form.email.trim()) ? '' : 'That address does not look quite right.';
-      case 'whatsapp':
-        return PHONE_RE.test(form.whatsapp.trim()) ? '' : 'A number we can actually reach.';
-      case 'city':
-        return form.city.trim().length >= 2 ? '' : 'Just the city is enough.';
-      case 'fit':
-        return form.size ? '' : 'Pick the one closest to you.';
-      default:
-        return '';
-    }
-  }
-
-  const advance = () => {
-    const e = validate();
-    if (e) { setError(e); return; }
-    setI((n) => Math.min(n + 1, STEPS.length - 1));
-  };
-
-  const back = () => { setError(''); setI((n) => Math.max(n - 1, 0)); };
-
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') { e.preventDefault(); advance(); }
-  };
-
-  async function send() {
-    if (status === 'sending') return;
-    setStatus('sending');
-    setFailMsg('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const res = await fetch('/api/interest', {
+      const existing = JSON.parse(localStorage.getItem("rora_waitlist") || "[]");
+      localStorage.setItem(
+        "rora_waitlist",
+        JSON.stringify([
+          ...existing,
+          { ...form, timestamp: new Date().toISOString() },
+        ]),
+      );
+      // Optional: also POST to api/interest if they want the same logic
+      await fetch('/api/interest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          pieces: marked.map((p) => p.name),
-          company: honeypot.current,
-        }),
-      });
-      const json = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) { setStatus('failed'); setFailMsg(json.error ?? 'Something went wrong. Try once more.'); return; }
-      setStatus('done');
+        body: JSON.stringify(form),
+      }).catch(() => {});
     } catch {
-      setStatus('failed');
-      setFailMsg('We could not reach the studio. Check your connection.');
+      /* silent */
     }
-  }
+    setSubmitted(true);
+  };
 
-  /* ---------------- accepted ---------------- */
-  if (status === 'done') {
-    return (
-      <section id="interest" data-ground="light" data-nav-bg="#EDE7DE" className="flex min-h-[92svh] items-center bg-[#EDE7DE] text-[#1C1614]">
-        <div className="shell text-center">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}>
-            <p className="eyebrow text-[#1C1614]/50">Received</p>
-            <h2 className="display-lg mx-auto mt-8 max-w-[18ch] text-[#1C1614]">
-              You are on the list, <em className="italic">{form.name.split(' ')[0]}</em>.
-            </h2>
-            <p className="lede mx-auto mt-8 max-w-[42ch] text-[#1C1614]/70">
-              You will hear from us before the run opens — and you will have first claim on your size.
-            </p>
-            {marked.length > 0 && (
-              <p className="eyebrow mx-auto mt-12 max-w-[52ch] text-[#1C1614]/50">
-                Held for you — {marked.map((p) => p.name).join(' · ')}
-              </p>
-            )}
-          </motion.div>
-        </div>
-      </section>
-    );
-  }
-
-  /* ---------------- the ask ---------------- */
   return (
-    <section id="interest" data-ground="light" data-nav-bg="#EDE7DE" className="flex min-h-[100svh] items-center bg-[#EDE7DE] text-[#1C1614]">
-      <div className="shell w-full">
-        {/* Progress — a hairline and a numeral */}
-        <div className="mb-14 flex items-center gap-6">
-          <span className="eyebrow text-[#1C1614]/50">{step.numeral} / VI</span>
-          <span aria-hidden className="relative h-px flex-1 bg-[#1C1614]/15">
-            <motion.span
-              className="absolute inset-y-0 left-0 bg-[#1C1614]/80"
-              animate={{ width: `${((i + 1) / STEPS.length) * 100}%` }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </span>
+    <section
+      id="interest"
+      data-ground="dark"
+      data-nav-bg="#4D0E12"
+      className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden bg-[#4D0E12] text-[#F5F1E6] py-16 px-6 sm:px-10 lg:px-16"
+    >
+      <div className="w-full max-w-3xl mx-auto">
+        <img
+          src="/images/logo-light.png"
+          alt="RORA"
+          className="h-6 sm:h-8 w-auto mb-16 sm:mb-20"
+        />
+
+        <div className="mb-12">
+          <p
+            className="mb-4 text-[10px] sm:text-[11px] font-medium tracking-[0.2em] uppercase text-[#F5F1E6]/80"
+            style={{ fontFamily: SANS }}
+          >
+            Be First Through the Door
+          </p>
+          <h2
+            className="text-4xl sm:text-5xl lg:text-6xl mb-6 font-light tracking-tight"
+            style={{ fontFamily: SERIF, lineHeight: 1.1 }}
+          >
+            Join the waitlist.
+          </h2>
+          <p
+            className="text-sm sm:text-base text-[#F5F1E6]/80 leading-relaxed max-w-[54ch]"
+            style={{ fontFamily: SANS }}
+          >
+            RORA opens its doors on 30 August 2026. Join below and we'll email you
+            the moment we go live — plus early access to the first collection.
+          </p>
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step.key}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -14 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <h2 className="display-lg max-w-[20ch] text-[#1C1614]">{step.ask}</h2>
-            {step.hint && <p className="lede mt-6 max-w-[44ch] text-[#1C1614]/65">{step.hint}</p>}
-
-            <div className="mt-14 max-w-[34rem]">
-              {step.key === 'name' && (
+        {submitted ? (
+          <div className="border border-[#F5F1E6]/20 py-16 px-8 text-center mt-12 max-w-2xl">
+            <h3
+              className="text-3xl sm:text-4xl italic font-light mb-4"
+              style={{ fontFamily: SERIF }}
+            >
+              You're on the list.
+            </h3>
+            <p
+              className="text-[#F5F1E6]/60 leading-relaxed max-w-[40ch] mx-auto text-sm sm:text-base"
+              style={{ fontFamily: SANS }}
+            >
+              We'll email you the moment we open the doors on August 30. Until
+              then — it's almost time.
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-10 sm:gap-12 mt-12 w-full max-w-2xl">
+            {/* Name + Email */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-8">
+              <div className="relative">
+                <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-medium text-[#F5F1E6]/90 mb-2">
+                  Full Name <span className="text-[#F5F1E6]">*</span>
+                </label>
                 <input
-                  autoFocus
-                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
+                  required
                   value={form.name}
-                  onChange={(e) => set('name', e.target.value)}
-                  onKeyDown={onKey}
-                  placeholder="Your name"
-                  autoComplete="name"
-                  aria-label="Your name"
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  className="w-full bg-transparent border-b border-[#F5F1E6]/30 py-2 text-[#F5F1E6] focus:border-[#F5F1E6] focus:outline-none transition-colors text-sm sm:text-base font-light rounded-none"
+                  style={{ fontFamily: SANS }}
                 />
-              )}
-              {step.key === 'email' && (
-                <input
-                  autoFocus
-                  type="email"
-                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
-                  value={form.email}
-                  onChange={(e) => set('email', e.target.value)}
-                  onKeyDown={onKey}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  aria-label="Email address"
-                />
-              )}
-              {step.key === 'whatsapp' && (
-                <input
-                  autoFocus
-                  type="tel"
-                  inputMode="tel"
-                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
-                  value={form.whatsapp}
-                  onChange={(e) => set('whatsapp', e.target.value)}
-                  onKeyDown={onKey}
-                  placeholder="+91"
-                  autoComplete="tel"
-                  aria-label="WhatsApp number"
-                />
-              )}
-              {step.key === 'city' && (
-                <input
-                  autoFocus
-                  className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors"
-                  value={form.city}
-                  onChange={(e) => set('city', e.target.value)}
-                  onKeyDown={onKey}
-                  placeholder="Pune, Mumbai, Delhi…"
-                  autoComplete="address-level2"
-                  aria-label="City"
-                />
-              )}
-
-              {step.key === 'fit' && (
-                <div>
-                  <div className="flex flex-wrap gap-3">
-                    {SIZES.map((s) => {
-                      const on = form.size === s;
-                      return (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => set('size', s)}
-                          aria-pressed={on}
-                          className="eyebrow border px-6 py-4 transition-colors duration-500 font-medium"
-                          style={{
-                            borderColor: on ? '#1C1614' : 'rgba(28,22,20,0.25)',
-                            backgroundColor: on ? '#1C1614' : 'transparent',
-                            color: on ? '#EDE7DE' : '#1C1614',
-                          }}
-                        >
-                          {s}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <label className="mt-12 block">
-                    <span className="eyebrow text-[#1C1614]/50">Age — optional</span>
-                    <input
-                      type="number"
-                      min={13}
-                      max={110}
-                      inputMode="numeric"
-                      className="w-full bg-transparent border-b border-[#1C1614]/30 py-3 text-xl sm:text-2xl text-[#1C1614] placeholder-[#1C1614]/40 focus:border-[#1C1614] focus:outline-none transition-colors mt-3"
-                      value={form.age}
-                      onChange={(e) => set('age', e.target.value)}
-                      onKeyDown={onKey}
-                      placeholder="—"
-                      aria-label="Age, optional"
-                    />
-                  </label>
-                </div>
-              )}
-
-              {step.key === 'review' && (
-                <dl className="grid gap-5 text-[#1C1614]/80">
-                  {([['Name', form.name], ['Email', form.email], ['WhatsApp', form.whatsapp], ['City', form.city], ['Size', form.size], ['Age', form.age || '—']] as const).map(([k, v]) => (
-                    <div key={k} className="flex items-baseline justify-between gap-6 border-b border-[#1C1614]/15 pb-3">
-                      <dt className="eyebrow text-[#1C1614]/45">{k}</dt>
-                      <dd className="text-right text-[#1C1614] font-medium">{v}</dd>
-                    </div>
-                  ))}
-                  <div className="flex items-baseline justify-between gap-6 pt-1">
-                    <dt className="eyebrow text-[#1C1614]/45">Pieces</dt>
-                    <dd className="text-right text-[#1C1614] font-medium">{marked.length ? marked.map((p) => p.name).join(', ') : 'None marked yet'}</dd>
-                  </div>
-                </dl>
-              )}
-
-              {/* Honeypot — off-screen */}
-              <div className="pointer-events-none absolute left-[-9999px]" aria-hidden>
-                <input tabIndex={-1} autoComplete="off" onChange={(e) => { honeypot.current = e.target.value; }} />
               </div>
-
-              {error && <p role="alert" className="mt-5 text-sm text-[#8B262A] font-medium">{error}</p>}
-              {status === 'failed' && <p role="alert" className="mt-5 text-sm text-[#8B262A] font-medium">{failMsg}</p>}
-
-              <div className="mt-14 flex flex-wrap items-center gap-8">
-                {step.key === 'review' ? (
-                  <button
-                    type="button"
-                    onClick={send}
-                    disabled={status === 'sending'}
-                    className="inline-flex items-center justify-center bg-[#1C1614] text-[#EDE7DE] hover:bg-[#38332E] px-9 py-4 font-semibold text-xs tracking-[0.25em] uppercase transition-all shadow-xl rounded-xs"
-                  >
-                    <span>{status === 'sending' ? 'Sending' : 'Request access'}</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={advance}
-                    className="inline-flex items-center justify-center bg-[#1C1614] text-[#EDE7DE] hover:bg-[#38332E] px-9 py-4 font-semibold text-xs tracking-[0.25em] uppercase transition-all shadow-xl rounded-xs"
-                  >
-                    <span>Continue</span>
-                  </button>
-                )}
-                {i > 0 && (
-                  <button type="button" onClick={back} className="eyebrow text-[#1C1614]/50 transition-colors duration-300 hover:text-[#1C1614]">
-                    Back
-                  </button>
-                )}
+              <div className="relative">
+                <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-medium text-[#F5F1E6]/90 mb-2">
+                  Email Address <span className="text-[#F5F1E6]">*</span>
+                </label>
+                <input
+                  required
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  className="w-full bg-transparent border-b border-[#F5F1E6]/30 py-2 text-[#F5F1E6] focus:border-[#F5F1E6] focus:outline-none transition-colors text-sm sm:text-base font-light rounded-none"
+                  style={{ fontFamily: SANS }}
+                />
               </div>
             </div>
-          </motion.div>
-        </AnimatePresence>
+
+            {/* Phone */}
+            <div className="relative">
+              <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-medium text-[#F5F1E6]/90 mb-2">
+                Phone Number <span className="text-[#F5F1E6]/50">(Optional)</span>
+              </label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                className="w-full bg-transparent border-b border-[#F5F1E6]/30 py-2 text-[#F5F1E6] focus:border-[#F5F1E6] focus:outline-none transition-colors text-sm sm:text-base font-light rounded-none"
+                style={{ fontFamily: SANS }}
+              />
+            </div>
+
+            {/* Favourite piece */}
+            <div className="relative">
+              <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-medium text-[#F5F1E6]/90 mb-2">
+                Which piece are you most excited about? <span className="text-[#F5F1E6]/50">(Optional)</span>
+              </label>
+              <select
+                value={form.favorite}
+                onChange={(e) => setForm((f) => ({ ...f, favorite: e.target.value }))}
+                className="w-full bg-transparent border-b border-[#F5F1E6]/30 py-2 text-[#F5F1E6] focus:border-[#F5F1E6] focus:outline-none transition-colors text-sm sm:text-base font-light appearance-none cursor-pointer rounded-none"
+                style={{
+                  fontFamily: SANS,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23F5F1E6' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 4px center",
+                  paddingRight: "24px",
+                }}
+              >
+                <option value="" className="bg-[#4D0E12]"></option>
+                <option value="The Blazer" className="bg-[#4D0E12]">The Blazer</option>
+                <option value="The Trouser" className="bg-[#4D0E12]">The Trouser</option>
+                <option value="The Coat" className="bg-[#4D0E12]">The Coat</option>
+                <option value="The Waistcoat" className="bg-[#4D0E12]">The Waistcoat</option>
+                <option value="The Shirt" className="bg-[#4D0E12]">The Shirt</option>
+                <option value="The Dinner Dress" className="bg-[#4D0E12]">The Dinner Dress</option>
+              </select>
+            </div>
+
+            {/* Notes */}
+            <div className="relative">
+              <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-medium text-[#F5F1E6]/90 mb-2">
+                Anything else you'd like us to know? <span className="text-[#F5F1E6]/50">(Optional)</span>
+              </label>
+              <textarea
+                value={form.notes}
+                rows={1}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                className="w-full bg-transparent border-b border-[#F5F1E6]/30 py-2 text-[#F5F1E6] focus:border-[#F5F1E6] focus:outline-none transition-colors text-sm sm:text-base font-light resize-none rounded-none"
+                style={{ fontFamily: SANS }}
+              />
+            </div>
+
+            {/* Consent */}
+            <label className="flex items-start gap-4 cursor-pointer group mt-2">
+              <div className="relative flex items-center justify-center mt-[2px] sm:mt-1">
+                <input
+                  type="checkbox"
+                  checked={form.consent}
+                  required
+                  onChange={(e) => setForm((f) => ({ ...f, consent: e.target.checked }))}
+                  className="peer sr-only"
+                />
+                <div className="w-4 h-4 border border-[#F5F1E6]/40 peer-checked:bg-[#F5F1E6] peer-checked:border-[#F5F1E6] transition-colors rounded-sm flex items-center justify-center">
+                  <svg
+                    className={`w-3 h-3 text-[#4D0E12] ${form.consent ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+              </div>
+              <span
+                className="text-xs sm:text-sm font-light text-[#F5F1E6]/80 leading-relaxed group-hover:text-[#F5F1E6] transition-colors"
+                style={{ fontFamily: SANS }}
+              >
+                Email me when RORA launches on 30 August. I understand I can
+                unsubscribe at any time. <span className="text-[#F5F1E6]">*</span>
+              </span>
+            </label>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              className="mt-6 w-full bg-[#F5F1E6] text-[#4D0E12] py-5 sm:py-6 text-[10px] sm:text-[11px] font-medium tracking-[0.24em] uppercase hover:bg-white transition-colors"
+              style={{ fontFamily: SANS }}
+            >
+              Join the Waitlist
+            </button>
+          </form>
+        )}
       </div>
     </section>
   );

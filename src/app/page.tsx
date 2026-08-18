@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 
-import { Countdown } from '@/components/Countdown';
-import { HeroSection } from '@/components/HeroSection';
+import { LaunchSequence } from '@/components/LaunchSequence';
 import { Interest } from '@/components/Interest';
 import { Manifesto } from '@/components/Manifesto';
 import { Opening } from '@/components/Opening';
@@ -29,8 +28,7 @@ function usePrefersReducedMotion() {
 
 /**
  * Deck-of-Cards Layered Page Flow with Magnetic Scroll Snap:
- * Card 1: Countdown (Sticky top-0 z-10)
- * Card 2: HeroSection (The Main Hero Section - relative z-20 min-h-[100svh] snap-start snap-always)
+ * Sequence 1: LaunchSequence (Smooth scroll crossfade - 200vh)
  * Card 3: Outfits Collection (What's Coming 7-Item Grid - relative z-30 min-h-[100svh] snap-start)
  * Card 4: Story - The House (relative z-40 min-h-[85vh] snap-start)
  * Card 5: Interest Request Form (BEIGE BACKGROUND - relative z-50 min-h-[100svh] snap-start)
@@ -81,15 +79,8 @@ export default function Page() {
         <main id="main" className="relative snap-y snap-proximity">
           <div id="top" />
 
-          {/* Card 1: Countdown Section (Sticky Pinned Layer) */}
-          <div className="sticky top-0 z-10 h-[100svh] w-full overflow-hidden snap-start snap-always">
-            <Countdown launchISO={CONTENT.launchISO} enabled={CONTENT.countdownEnabled} />
-          </div>
-
-          {/* Card 2: THE HERO SECTION (Original Hero with Plum Suit Color 2-3.png) */}
-          <div className="relative z-20 min-h-[100svh] w-full bg-[#1E1715] snap-start snap-always">
-            <HeroSection />
-          </div>
+          {/* LaunchSequence (Smooth scroll over 200vh, crossfading Countdown and Hero) */}
+          <LaunchSequence launchISO={CONTENT.launchISO} />
 
           {/* Card 3: Outfits Collection (What's Coming 7-Item Grid) */}
           <div className="relative z-30 min-h-[100svh] w-full bg-ivory snap-start">
