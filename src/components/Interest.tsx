@@ -13,12 +13,27 @@ export function Interest() {
     favorite: '',
     notes: '',
     consent: false,
+    company: '', // honeypot — real visitors never see or fill this
   });
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setSubmitting(true);
     try {
+      const res = await fetch('/api/interest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
       const existing = JSON.parse(localStorage.getItem("rora_waitlist") || "[]");
       localStorage.setItem(
         "rora_waitlist",
@@ -27,16 +42,12 @@ export function Interest() {
           { ...form, timestamp: new Date().toISOString() },
         ]),
       );
-      // Optional: also POST to api/interest if they want the same logic
-      await fetch('/api/interest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      }).catch(() => {});
+      setSubmitted(true);
     } catch {
-      /* silent */
+      setError('Could not reach the server. Check your connection and try again.');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitted(true);
   };
 
   return (
@@ -93,6 +104,19 @@ export function Interest() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-10 sm:gap-12 mt-12 w-full max-w-2xl">
+            {/* Honeypot — hidden from real visitors, bots tend to fill every field */}
+            <input
+              type="text"
+              name="hp_field"
+              id="hp_field"
+              value={form.company}
+              onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              style={{ display: 'none' }}
+            />
+
             {/* Name + Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-8">
               <div className="relative">
@@ -154,12 +178,12 @@ export function Interest() {
                 }}
               >
                 <option value="" className="bg-[#4D0E12]"></option>
-                <option value="The Suit" className="bg-[#4D0E12]">The Suit</option>
-                <option value="The Blazer" className="bg-[#4D0E12]">The Blazer</option>
-                <option value="The Dinner Dress" className="bg-[#4D0E12]">The Dinner Dress</option>
-                <option value="The Trouser" className="bg-[#4D0E12]">The Trouser</option>
-                <option value="The Shirt" className="bg-[#4D0E12]">The Shirt</option>
-                <option value="The Coat" className="bg-[#4D0E12]">The Coat</option>
+                <option value="The Audacity Suit" className="bg-[#4D0E12]">The Audacity Suit</option>
+                <option value="Out of the Blue Set" className="bg-[#4D0E12]">Out of the Blue Set</option>
+                <option value="Its a Wrap Suit" className="bg-[#4D0E12]">Its a Wrap Suit</option>
+                <option value="Thoda Teekha Vest" className="bg-[#4D0E12]">Thoda Teekha Vest</option>
+                <option value="Waist of Time Suit" className="bg-[#4D0E12]">Waist of Time Suit</option>
+                <option value="The Soft Spoken Shirt" className="bg-[#4D0E12]">The Soft Spoken Shirt</option>
               </select>
             </div>
 
@@ -210,13 +234,20 @@ export function Interest() {
               </span>
             </label>
 
+            {error && (
+              <p className="text-xs sm:text-sm text-[#F5C9C9]" style={{ fontFamily: SANS }} role="alert">
+                {error}
+              </p>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
-              className="mt-6 w-full bg-[#F5F1E6] text-[#4D0E12] py-5 sm:py-6 text-[10px] sm:text-[11px] font-medium tracking-[0.24em] uppercase hover:bg-white transition-colors"
+              disabled={submitting}
+              className="mt-6 w-full bg-[#F5F1E6] text-[#4D0E12] py-5 sm:py-6 text-[10px] sm:text-[11px] font-medium tracking-[0.24em] uppercase hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={{ fontFamily: SANS }}
             >
-              Join the Waitlist
+              {submitting ? 'Joining…' : 'Join the Waitlist'}
             </button>
           </form>
         )}

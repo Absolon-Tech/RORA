@@ -6,24 +6,33 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Access requests.
+ * Waitlist signups.
  *
- * Written to disk FIRST, before either integration is attempted. Google Sheets and SMTP are both
- * external and both can be down or misconfigured; losing a real person's details is a far worse
- * outcome than a duplicate row.
+ * Three destinations, attempted independently so one outage never blocks another:
+ *  - Google Sheet (via an Apps Script webhook) — the real record of truth in production.
+ *  - Owner notification email — to NOTIFY_TO, reply-to set to the signer so the owner can just hit reply.
+ *  - Customer confirmation email — to the signer, confirming they're on the list.
+ *
+ * `toDisk` is a local-dev convenience only: Vercel's serverless filesystem is read-only outside
+ * /tmp and nothing written there survives past the request, so it is not a substitute for the
+ * sheet in production. Never bake real signup data into a committed file — see .gitignore.
  */
 
 type Entry = {
-  name: string; email: string; whatsapp: string; city: string;
-  size: string; age?: string; pieces: string[];
+  name: string;
+  email: string;
+  phone: string;
+  favorite: string;
+  notes: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const PHONE_RE = /^[+\d][\d\s()\-.]{6,}$/;
+const PHONE_RE = /^[+\d][\d\s()\-.]{5,}$/;
 
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 
-/* In-memory speed bump. Per instance, resets on deploy — enough to stop hammering. */
+/* In-memory speed bump. Per instance, resets on deploy — enough to stop hammering, not a full
+ * shield (Vercel runs many concurrent instances). Good enough for a pre-launch waitlist. */
 const HITS = new Map<string, number[]>();
 function limited(ip: string) {
   const now = Date.now();
@@ -52,44 +61,89 @@ async function toSheet(e: Entry, when: Date) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        row: [when.toISOString(), e.name, e.email, e.whatsapp, e.city, e.size, e.age ?? '', e.pieces.join(', ')],
-        headers: ['Timestamp', 'Name', 'Email', 'WhatsApp', 'City', 'Size', 'Age', 'Pieces'],
+        secret: process.env.SHEET_SECRET || undefined,
+        row: [when.toISOString(), e.name, e.email, e.phone || '', e.favorite || '', e.notes || ''],
+        headers: ['Timestamp', 'Name', 'Email', 'Phone', 'Favorite Piece', 'Notes'],
       }),
-      // Never let a slow Apps Script hold the visitor's request open.
-      signal: AbortSignal.timeout(8000),
+      // Never let a slow Apps Script hold the visitor's request open — but give it room for a
+      // cold start, which can take several seconds.
+      signal: AbortSignal.timeout(15000),
     });
-    return res.ok;
+    // Apps Script web apps always answer HTTP 200, even on internal error — the real result is in
+    // the JSON body's "ok" field (see scripts/waitlist-sheet-webhook.gs).
+    const data = await res.json().catch(() => null);
+    return res.ok && data?.ok === true;
   } catch (err) {
     console.error('[interest] sheet failed:', err);
     return false;
   }
 }
 
-async function notify(e: Entry, when: Date) {
+function transport() {
   const { SMTP_HOST: host, SMTP_USER: user, SMTP_PASS: pass } = process.env;
-  if (!host || !user || !pass) return false;
+  if (!host || !user || !pass) return null;
+  const port = Number(process.env.SMTP_PORT ?? 465);
+  return { host, port, user, pass };
+}
+
+async function notifyOwner(e: Entry, when: Date) {
+  const cfg = transport();
+  if (!cfg) return false;
   try {
-    // Imported lazily so an unconfigured deployment never pays to load it.
     const nodemailer = (await import('nodemailer')).default;
-    const port = Number(process.env.SMTP_PORT ?? 465);
     const rows: Array<[string, string]> = [
-      ['Name', e.name], ['Email', e.email], ['WhatsApp', e.whatsapp],
-      ['City', e.city], ['Size', e.size], ['Age', e.age || '—'],
-      ['Pieces', e.pieces.length ? e.pieces.join(', ') : '—'],
+      ['Name', e.name],
+      ['Email', e.email],
+      ['Phone', e.phone || '—'],
+      ['Favorite piece', e.favorite || '—'],
+      ['Notes', e.notes || '—'],
       ['When', when.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })],
     ];
-    await nodemailer
-      .createTransport({ host, port, secure: port === 465, auth: { user, pass } })
+    const info = await nodemailer
+      .createTransport({ host: cfg.host, port: cfg.port, secure: cfg.port === 465, auth: { user: cfg.user, pass: cfg.pass } })
       .sendMail({
-        from: `"RORA" <${user}>`,
-        to: process.env.NOTIFY_TO || user,
+        from: `"RORA" <${cfg.user}>`,
+        to: process.env.NOTIFY_TO || cfg.user,
         replyTo: e.email,
-        subject: `Access request — ${e.name}`,
+        subject: `New waitlist signup — ${e.name}`,
         text: rows.map(([k, v]) => `${k}: ${v}`).join('\n'),
       });
-    return true;
+    console.log('[interest] owner mail sent:', { messageId: info.messageId, accepted: info.accepted, rejected: info.rejected, response: info.response });
+    return info.rejected.length === 0;
   } catch (err) {
-    console.error('[interest] mail failed:', err);
+    console.error('[interest] owner mail failed:', err);
+    return false;
+  }
+}
+
+async function notifyCustomer(e: Entry) {
+  const cfg = transport();
+  if (!cfg) return false;
+  try {
+    const nodemailer = (await import('nodemailer')).default;
+    const first = e.name.split(' ')[0];
+    const info = await nodemailer
+      .createTransport({ host: cfg.host, port: cfg.port, secure: cfg.port === 465, auth: { user: cfg.user, pass: cfg.pass } })
+      .sendMail({
+        from: `"RORA" <${cfg.user}>`,
+        to: e.email,
+        replyTo: process.env.NOTIFY_TO || cfg.user,
+        subject: "You're on the list — RORA",
+        text: [
+          `Hi ${first},`,
+          '',
+          "You're on the RORA waitlist. We'll send you a reminder the moment we open the doors on 30 August, so you can place your order — plus early access to the first collection.",
+          '',
+          e.favorite ? `We've noted you're excited about: ${e.favorite}.` : '',
+          '',
+          'Structured · Bold · Yours',
+          'RORA',
+        ].filter(Boolean).join('\n'),
+      });
+    console.log('[interest] customer mail sent:', { messageId: info.messageId, accepted: info.accepted, rejected: info.rejected, response: info.response });
+    return info.rejected.length === 0;
+  } catch (err) {
+    console.error('[interest] customer mail failed:', err);
     return false;
   }
 }
@@ -107,37 +161,38 @@ export async function POST(request: Request) {
   try { body = (await request.json()) as Record<string, unknown>; }
   catch { return NextResponse.json({ error: 'Invalid request.' }, { status: 400 }); }
 
-  // Honeypot: answer exactly like a success so bots learn nothing.
-  if (str(body.company, 80)) return NextResponse.json({ ok: true });
+  // Honeypot: answer exactly like a success so bots learn nothing. Logged (not silent) so a
+  // legitimate visitor's browser autofill tripping this is diagnosable rather than invisible.
+  const honeypot = str(body.company, 80);
+  if (honeypot) {
+    console.warn('[interest] honeypot tripped, request short-circuited:', { ip, value: honeypot });
+    return NextResponse.json({ ok: true });
+  }
 
   const name = str(body.name, 80);
   const email = str(body.email, 160);
-  const whatsapp = str(body.whatsapp, 24);
-  const city = str(body.city, 80);
-  const size = str(body.size, 24);
-  const age = str(body.age, 4);
+  const phone = str(body.phone, 24);
+  const favorite = str(body.favorite, 80);
+  const notes = str(body.notes, 500);
+  const consent = body.consent === true;
 
   if (name.length < 2) return NextResponse.json({ error: 'A name, however short.' }, { status: 400 });
   if (!EMAIL_RE.test(email)) return NextResponse.json({ error: 'That address does not look right.' }, { status: 400 });
-  if (!PHONE_RE.test(whatsapp)) return NextResponse.json({ error: 'A number we can actually reach.' }, { status: 400 });
-  if (age) {
-    const n = Number(age);
-    if (!Number.isInteger(n) || n < 13 || n > 110) {
-      return NextResponse.json({ error: 'That age does not look right.' }, { status: 400 });
-    }
-  }
+  if (phone && !PHONE_RE.test(phone)) return NextResponse.json({ error: 'That phone number does not look right.' }, { status: 400 });
+  if (!consent) return NextResponse.json({ error: 'Please confirm you want to hear from us.' }, { status: 400 });
 
-  const pieces = Array.isArray(body.pieces)
-    ? (body.pieces as unknown[]).slice(0, 30).map((p) => str(p, 80)).filter(Boolean)
-    : [];
-
-  const entry: Entry = { name, email, whatsapp, city, size, age: age || undefined, pieces };
+  const entry: Entry = { name, email, phone, favorite, notes };
   const when = new Date();
 
   await toDisk({ ...entry, ip, at: when.toISOString() });
-  const [sheet, mail] = await Promise.all([toSheet(entry, when), notify(entry, when)]);
+  const [sheet, ownerMail, customerMail] = await Promise.all([
+    toSheet(entry, when),
+    notifyOwner(entry, when),
+    notifyCustomer(entry),
+  ]);
 
-  // Safely on disk either way, so the visitor is confirmed. Surfacing an integration outage to a
-  // customer would only lose the request.
-  return NextResponse.json({ ok: true, delivered: { sheet, mail } });
+  // Sheet or owner-mail failures are ours to fix later (both are logged server-side); the visitor
+  // is confirmed either way. But if we couldn't even confirm the address is real for THEM, surface
+  // it so they know to try again rather than believing they're on the list when they're not.
+  return NextResponse.json({ ok: true, delivered: { sheet, ownerMail, customerMail } });
 }

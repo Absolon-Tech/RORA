@@ -3,15 +3,6 @@
 import { Reveal } from './Reveal';
 import type { Piece } from '@/lib/content';
 
-const PRICES: Record<string, string> = {
-  suit: '₹48,000',
-  blazer: '₹39,500',
-  'dinner-dress': '₹39,500',
-  trouser: '₹26,000',
-  shirt: '₹32,000',
-  coat: '₹52,000',
-};
-
 /**
  * The Collection (What's Coming):
  * 3-column editorial product grid matching Images 1 & 2.
@@ -49,7 +40,6 @@ export function Outfits({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-14 lg:gap-x-10 lg:gap-y-16">
           {pieces.map((piece, i) => {
             const on = selected.includes(piece.id);
-            const price = PRICES[piece.id] || '₹36,000';
 
             return (
               <Reveal key={piece.id} delay={(i % 3) * 100}>
@@ -66,30 +56,32 @@ export function Outfits({
                       />
                     </div>
 
-                    {/* Name & Price Hairline Row */}
-                    <div className="mt-4 flex items-baseline justify-between gap-2">
-                      <h3 className="font-display text-lg font-medium text-java">{piece.name}</h3>
-                      <span aria-hidden className="h-px flex-1 bg-java/20 mx-2" />
-                      <span className="font-mono text-xs text-java/60 tracking-wider">{price}</span>
+                    {/* Name Row */}
+                    <div className="mt-4">
+                      <h3 className="font-display text-xl font-bold text-java">{piece.name}</h3>
                     </div>
 
                     {/* Material Description */}
-                    <p className="mt-1 text-xs text-java/60 font-body leading-relaxed">{piece.material}</p>
+                    <p className="mt-1 text-sm text-java/60 font-body leading-relaxed">{piece.material}</p>
                   </div>
 
-                  {/* Notify / Mark Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(piece.id)}
-                    aria-pressed={on}
-                    className={`mt-5 w-full py-3.5 px-4 eyebrow text-[0.625rem] tracking-[0.25em] transition-all duration-300 border ${
-                      on
-                        ? 'bg-sceptre text-ivory border-sceptre shadow-md'
-                        : 'border-java/25 text-java/75 hover:border-java hover:bg-java hover:text-ivory'
-                    }`}
-                  >
-                    {on ? 'MARKED FOR ACCESS' : 'NOTIFY ME WHEN THIS DROPS'}
-                  </button>
+                  {/* Bottom: Size + Button always pinned together */}
+                  <div>
+                    <p className="mt-4 mb-3 text-sm font-bold text-java">Available in XS – 3XL</p>
+                    {/* Notify / Mark Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(piece.id)}
+                      aria-pressed={on}
+                      className={`w-full py-3.5 px-4 eyebrow text-[0.625rem] tracking-[0.25em] transition-all duration-300 border ${
+                        on
+                          ? 'bg-sceptre text-ivory border-sceptre shadow-md'
+                          : 'border-java/25 text-java/75 hover:border-java hover:bg-java hover:text-ivory'
+                      }`}
+                    >
+                      {on ? 'MARKED FOR ACCESS' : 'NOTIFY ME WHEN THIS DROPS'}
+                    </button>
+                  </div>
                 </article>
               </Reveal>
             );

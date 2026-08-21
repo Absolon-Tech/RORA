@@ -386,27 +386,7 @@ function CountdownOverlay({ progress, reduced, launchISO }: { progress: number; 
                     <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
                   </svg>
                 ),
-                url: "https://instagram.com/theroraera"
-              },
-              {
-                k: "tw",
-                label: "Twitter / X",
-                svg: (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
-                  </svg>
-                ),
-                url: "https://twitter.com/theroraera"
-              },
-              {
-                k: "pi",
-                label: "Pinterest",
-                svg: (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.36 9.31-.09-.79-.17-2 .03-2.87.18-.78 1.17-4.97 1.17-4.97s-.3-.6-.3-1.48c0-1.39.81-2.43 1.81-2.43.85 0 1.26.64 1.26 1.41 0 .86-.55 2.14-.83 3.33-.24.99.5 1.8 1.48 1.8 1.77 0 2.98-2.29 2.98-5 0-2.07-1.4-3.59-3.91-3.59-2.84 0-4.64 2.13-4.64 4.49 0 .82.24 1.39.62 1.83.17.2.2.28.13.52-.04.17-.14.58-.18.74-.06.24-.24.32-.44.23-1.25-.52-1.85-1.9-1.85-3.48 0-2.57 2.17-5.67 6.45-5.67 3.46 0 5.73 2.51 5.73 5.21 0 3.56-1.96 6.24-4.85 6.24-.97 0-1.88-.52-2.19-1.1l-.61 2.35c-.22.84-.82 1.91-1.22 2.55.92.28 1.9.44 2.91.44C17.52 22 22 17.52 22 12S17.52 2 12 2z" />
-                  </svg>
-                ),
-                url: "https://pinterest.com/theroraera"
+                url: "https://www.instagram.com/theroraera?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw=="
               },
             ].map(({ k, label, svg, url }) => (
               <a
