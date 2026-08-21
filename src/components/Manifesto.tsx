@@ -4,8 +4,10 @@ import type { MouseEvent } from 'react';
 
 /**
  * The Manifesto / Roma Section Artwork Stage (The Final Section):
- * Displays `_RomaPhoneSection.png` on phone screens and `Roma Section.png` on larger screens.
- * Floats brand specs, copyright, and social media SVG icons directly over the artwork with a transparent background.
+ * Displays `_RomaPhoneSection.png` on phone screens. On larger screens, uses a real fabric-texture
+ * crop (fabric-texture.jpg, pulled from the same shoot) with the alpha-masked wordmark
+ * (rora-wordmark.png) layered near the top, so desktop matches the mobile fabric backdrop instead
+ * of a flat fill, with a shorter section and tighter gap to the footer row.
  */
 export function Manifesto() {
   const handleScrollTop = (e: MouseEvent<HTMLAnchorElement>) => {
@@ -18,7 +20,7 @@ export function Manifesto() {
       id="craft"
       data-ground="dark"
       data-nav-bg="#33201B"
-      className="relative bg-[#33201B] w-full min-h-[90vh] sm:min-h-[100svh] flex flex-col justify-between pt-0 pb-0 text-[#1C1614] overflow-hidden"
+      className="relative bg-[#33201B] w-full min-h-[90vh] sm:min-h-[100svh] md:min-h-[65vh] flex flex-col justify-between pt-0 pb-0 text-[#1C1614] overflow-hidden"
     >
       {/* Mobile Phone Artwork: _RomaPhoneSection.png (9:16 vertical portrait graphic) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -28,12 +30,21 @@ export function Manifesto() {
         className="block md:hidden absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none z-0"
       />
 
-      {/* Desktop / Tablet Artwork: Roma Section.png */}
+      {/* Desktop / Tablet Background: real fabric texture crop, no flat fill */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/images/Roma Section.png"
-        alt="RORA Tailored Posture artwork"
+        src="/images/fabric-texture.jpg"
+        alt=""
+        aria-hidden
         className="hidden md:block absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none z-0"
+      />
+
+      {/* Desktop / Tablet Wordmark: alpha-masked RORA, layered on the fabric near the top */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/rora-wordmark.png"
+        alt="RORA"
+        className="hidden md:block absolute top-8 lg:top-10 left-1/2 -translate-x-1/2 w-[60%] max-w-2xl pointer-events-none select-none z-0"
       />
 
       {/* Ambient Vignette at Bottom for Overlay Legibility */}
