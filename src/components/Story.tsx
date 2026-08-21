@@ -4,7 +4,7 @@ import { Reveal } from './Reveal';
 
 /**
  * The House Section ("Built for the way you actually live"):
- * Features model image section-4.jpg.
+ * Features model image section-4.jpeg.
  * On Mobile: Pulled down & centered so her head and hair are 100% complete and intact without top clipping.
  * On Desktop: Zoomed in (scale 1.45) & pulled left, while brown coffee (#3D2620) blur covers the right side text.
  */
@@ -21,7 +21,7 @@ export function Story() {
         {/* Mobile View Image: Pulled down slightly (object-14% top offset) & centered so head is 100% intact */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/section-4.jpg"
+          src="/images/section-4.jpeg"
           alt="Model in RORA cerulean pinstripe vest and wide trousers"
           className="lg:hidden h-full w-full object-cover object-[48%_14%]"
         />
@@ -29,7 +29,7 @@ export function Story() {
         {/* Desktop View Image: Zoomed in (scale 1.45) & pulled left/up */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/section-4.jpg"
+          src="/images/section-4.jpeg"
           alt="Model in RORA cerulean pinstripe vest and wide trousers"
           className="hidden lg:block h-full w-full object-cover object-[0%_0%]"
           style={{

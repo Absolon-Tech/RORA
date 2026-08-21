@@ -56,7 +56,7 @@ export const PIECES: Piece[] = [
     name: 'The Trouser',
     material: 'Espresso wide-leg, sharp crease',
     note: 'High waist, endless line. Cut to be lived in rather than sat still in.',
-    image: '/images/product-4.jpeg',
+    image: '/images/product-4.JPG',
   },
   {
     id: 'shirt',
