@@ -154,12 +154,12 @@ export function Interest() {
                 }}
               >
                 <option value="" className="bg-[#4D0E12]"></option>
+                <option value="The Suit" className="bg-[#4D0E12]">The Suit</option>
                 <option value="The Blazer" className="bg-[#4D0E12]">The Blazer</option>
-                <option value="The Trouser" className="bg-[#4D0E12]">The Trouser</option>
-                <option value="The Coat" className="bg-[#4D0E12]">The Coat</option>
-                <option value="The Waistcoat" className="bg-[#4D0E12]">The Waistcoat</option>
-                <option value="The Shirt" className="bg-[#4D0E12]">The Shirt</option>
                 <option value="The Dinner Dress" className="bg-[#4D0E12]">The Dinner Dress</option>
+                <option value="The Trouser" className="bg-[#4D0E12]">The Trouser</option>
+                <option value="The Shirt" className="bg-[#4D0E12]">The Shirt</option>
+                <option value="The Coat" className="bg-[#4D0E12]">The Coat</option>
               </select>
             </div>
 

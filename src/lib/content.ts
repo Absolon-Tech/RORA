@@ -22,7 +22,7 @@ export type SiteContent = {
 export const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'Not sure yet'] as const;
 
 /**
- * The seven. Working lineup — names, copy and imagery are all meant to be replaced once the real
+ * The six. Working lineup — names, copy and imagery are all meant to be replaced once the real
  * run is confirmed. The Suit is first because it is the piece the film is about.
  */
 export const PIECES: Piece[] = [
@@ -32,7 +32,7 @@ export const PIECES: Piece[] = [
     name: 'The Suit',
     material: 'Plum wool, gold crest buttons',
     note: 'The whole argument in two pieces. Worn together for the room, split apart for everything after it.',
-    image: '/images/piece-suit.jpg',
+    image: '/images/product-1.jpeg',
   },
   {
     id: 'blazer',
@@ -40,7 +40,7 @@ export const PIECES: Piece[] = [
     name: 'The Blazer',
     material: 'Cream wool, single button',
     note: 'A strong shoulder and a soft hand. Thrown over almost nothing, it does the work for you.',
-    image: '/images/piece-blazer.jpg',
+    image: '/images/product-2.jpeg',
   },
   {
     id: 'dinner-dress',
@@ -48,7 +48,7 @@ export const PIECES: Piece[] = [
     name: 'The Dinner Dress',
     material: 'Oxblood column, high neck',
     note: 'Floor-skimming and completely unbothered. The one piece in the run that raises its voice.',
-    image: '/images/piece-dinner-dress.jpg',
+    image: '/images/product-3.jpeg',
   },
   {
     id: 'trouser',
@@ -56,7 +56,7 @@ export const PIECES: Piece[] = [
     name: 'The Trouser',
     material: 'Espresso wide-leg, sharp crease',
     note: 'High waist, endless line. Cut to be lived in rather than sat still in.',
-    image: '/images/piece-trouser.jpg',
+    image: '/images/product-4.jpeg',
   },
   {
     id: 'shirt',
@@ -64,7 +64,7 @@ export const PIECES: Piece[] = [
     name: 'The Shirt',
     material: 'Ivory poplin, deep cuff',
     note: 'Oversized, half-tucked, sleeves pushed back. The most quietly useful thing in the run.',
-    image: '/images/piece-shirt.jpg',
+    image: '/images/product-5.jpeg',
   },
   {
     id: 'coat',
@@ -72,15 +72,7 @@ export const PIECES: Piece[] = [
     name: 'The Coat',
     material: 'Sand wool, belted',
     note: 'Below the calf, collar up. Built for the walk between one version of the day and the next.',
-    image: '/images/piece-coat.jpg',
-  },
-  {
-    id: 'waistcoat',
-    numeral: 'VII',
-    name: 'The Waistcoat',
-    material: 'Tailored, worn alone',
-    note: 'Nothing over it, nothing needed. Sharp-edged and deliberately unfinished.',
-    image: '/images/piece-waistcoat.jpg',
+    image: '/images/product-6.jpeg',
   },
 ];
 

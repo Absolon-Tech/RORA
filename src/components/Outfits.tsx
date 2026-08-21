@@ -10,7 +10,6 @@ const PRICES: Record<string, string> = {
   trouser: '₹26,000',
   shirt: '₹32,000',
   coat: '₹52,000',
-  waistcoat: '₹24,000',
 };
 
 /**
@@ -46,7 +45,7 @@ export function Outfits({
           </h2>
         </Reveal>
 
-        {/* 7-Item Grid matching Images 1 & 2 */}
+        {/* 6-Item Grid matching Images 1 & 2 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-14 lg:gap-x-10 lg:gap-y-16">
           {pieces.map((piece, i) => {
             const on = selected.includes(piece.id);
