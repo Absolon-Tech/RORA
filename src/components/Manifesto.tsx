@@ -4,10 +4,9 @@ import type { MouseEvent } from 'react';
 
 /**
  * The Manifesto / Roma Section Artwork Stage (The Final Section):
- * Displays `_RomaPhoneSection.png` on phone screens. On larger screens, uses a real fabric-texture
- * crop (fabric-texture.jpg, pulled from the same shoot) with the alpha-masked wordmark
- * (rora-wordmark.png) layered near the top, so desktop matches the mobile fabric backdrop instead
- * of a flat fill, with a shorter section and tighter gap to the footer row.
+ * Displays `_RomaPhoneSection.png` on phone screens and `Roma Section.png` (fabric texture with the
+ * wordmark baked in) on larger screens, so desktop matches the mobile fabric backdrop instead of a
+ * flat fill, with a shorter section and tighter gap to the footer row.
  */
 export function Manifesto() {
   const handleScrollTop = (e: MouseEvent<HTMLAnchorElement>) => {
@@ -30,21 +29,12 @@ export function Manifesto() {
         className="block md:hidden absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none z-0"
       />
 
-      {/* Desktop / Tablet Background: real fabric texture crop, no flat fill */}
+      {/* Desktop / Tablet Artwork: Roma Section.png (fabric texture with wordmark baked in) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/images/fabric-texture.jpg"
-        alt=""
-        aria-hidden
+        src="/images/Roma Section.png"
+        alt="RORA Tailored Posture artwork"
         className="hidden md:block absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none z-0"
-      />
-
-      {/* Desktop / Tablet Wordmark: alpha-masked RORA, layered on the fabric near the top */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/rora-wordmark.png"
-        alt="RORA"
-        className="hidden md:block absolute top-8 lg:top-10 left-1/2 -translate-x-1/2 w-[60%] max-w-2xl pointer-events-none select-none z-0"
       />
 
       {/* Ambient Vignette at Bottom for Overlay Legibility */}

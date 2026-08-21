@@ -180,23 +180,39 @@ function CountdownOverlay({ progress, reduced, launchISO }: { progress: number; 
             padding: `clamp(40px,6vh,80px) clamp(1.2rem, 5vw, 5rem) 0`,
           }}
         >
-          <img
-            src="/images/logo-light.png"
-            alt="RORA"
-            style={
-              isMobile
-                ? {
-                    width: "min(68vw, 300px)",
-                    height: "auto",
-                    marginBottom: "clamp(1rem, 2.2vh, 1.8rem)",
-                  }
-                : {
-                    height: "clamp(72px, min(11vw, 13vh), 130px)",
-                    width: "auto",
-                    marginBottom: "clamp(1rem, 2vh, 1.8rem)",
-                  }
-            }
-          />
+          <div
+            className="flex flex-col md:flex-row items-center md:items-baseline justify-center flex-nowrap md:flex-wrap gap-4 md:gap-3 mb-[clamp(1rem,2.2vh,1.8rem)] md:mb-[clamp(1rem,2vh,1.8rem)]"
+          >
+            <span
+              className="text-[clamp(1.9rem,9vw,3rem)] md:text-[clamp(1.9rem,min(5.2vw,6vh),3.4rem)]"
+              style={{
+                fontFamily: SERIF,
+                fontStyle: "italic",
+                fontWeight: 300,
+                color: "#F5F1E6",
+                lineHeight: 1,
+              }}
+            >
+              It&apos;s
+            </span>
+            <img
+              src="/images/logo-light-tight.png"
+              alt="RORA"
+              className="w-[min(70vw,320px)] h-auto md:w-auto md:h-[clamp(42px,min(6.4vw,7.6vh),76px)]"
+            />
+            <span
+              className="text-[clamp(1.9rem,9vw,3rem)] md:text-[clamp(1.9rem,min(5.2vw,6vh),3.4rem)]"
+              style={{
+                fontFamily: SERIF,
+                fontStyle: "italic",
+                fontWeight: 300,
+                color: "#F5F1E6",
+                lineHeight: 1,
+              }}
+            >
+              o&apos;clock
+            </span>
+          </div>
 
           <div
             style={{
@@ -256,18 +272,34 @@ function CountdownOverlay({ progress, reduced, launchISO }: { progress: number; 
               >
                 {i > 0 && (
                   <span
-                    className="countdown-sep hidden sm:block"
+                    className="countdown-sep"
                     style={{
-                      fontFamily: SERIF,
-                      fontWeight: 300,
-                      fontSize: "clamp(3rem, min(9vw, 9.5vh), 9rem)",
-                      color: C.blue,
-                      lineHeight: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "clamp(0.2rem, 0.7vw, 0.55rem)",
+                      height: "clamp(3.6rem, min(11vw, 11vh), 10.5rem)",
                       padding: "0 clamp(0.15rem, 0.5vw, 0.6rem)",
                       userSelect: "none",
                     }}
                   >
-                    ·
+                    <span
+                      style={{
+                        width: "clamp(0.18rem, 0.55vw, 0.42rem)",
+                        height: "clamp(0.18rem, 0.55vw, 0.42rem)",
+                        borderRadius: "50%",
+                        background: C.blue,
+                      }}
+                    />
+                    <span
+                      style={{
+                        width: "clamp(0.18rem, 0.55vw, 0.42rem)",
+                        height: "clamp(0.18rem, 0.55vw, 0.42rem)",
+                        borderRadius: "50%",
+                        background: C.blue,
+                      }}
+                    />
                   </span>
                 )}
                 <div
@@ -503,7 +535,7 @@ function NormalHero({ heroReveal, reduced }: { heroReveal: number; reduced: bool
         }}
       >
         <img
-          src="/images/Color 2-3.png"
+          src="/images/section-2.png"
           alt="RORA editorial — structured womenswear"
           className="h-full w-full object-cover object-[center_30%] lg:object-[center_top]"
         />

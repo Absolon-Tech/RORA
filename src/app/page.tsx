@@ -98,7 +98,7 @@ export default function Page() {
           </div>
 
           {/* Card 6: Manifesto / Roma Section Artwork Stage (Placed RIGHT AFTER THE FORM) */}
-          <div className="relative z-60 min-h-[85vh] sm:min-h-[92vh] w-full bg-[#EDE7DE] snap-start">
+          <div className="relative z-60 min-h-[85vh] sm:min-h-[92vh] md:min-h-[65vh] w-full bg-[#EDE7DE] snap-start">
             <Manifesto />
           </div>
         </main>
