@@ -40,7 +40,7 @@ export const PIECES: Piece[] = [
     name: 'Out of the Blue Set',
     material: 'A navy blue sleeveless waistcoat co-ord set accented with asymmetric gold buttons.',
     note: 'A strong shoulder and a soft hand. Thrown over almost nothing, it does the work for you.',
-    image: '/images/product-2.jpeg',
+    image: '/images/product-2.jpg',
   },
   {
     id: 'dinner-dress',
