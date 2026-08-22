@@ -515,7 +515,7 @@ function NormalHero({ heroReveal, reduced }: { heroReveal: number; reduced: bool
         }}
       >
         <img
-          src="/images/section-2.png"
+          src="/images/section-2.jpeg"
           alt="RORA editorial — structured womenswear"
           className="h-full w-full object-cover object-[center_30%] lg:object-[center_top]"
         />

@@ -64,7 +64,7 @@ export const PIECES: Piece[] = [
     name: 'Waist of Time Suit',
     material: 'A sophisticated charcoal grey tailored pantsuit featuring a corset structured blazer waistline.',
     note: 'Oversized, half-tucked, sleeves pushed back. The most quietly useful thing in the run.',
-    image: '/images/product-5.jpeg',
+    image: '/images/product-5.jpg',
   },
   {
     id: 'coat',
@@ -72,7 +72,7 @@ export const PIECES: Piece[] = [
     name: 'The Soft Spoken Shirt',
     material: 'A crisp ivory button down tailored with a signature embroidered monogram along the placket and cuff.',
     note: 'Below the calf, collar up. Built for the walk between one version of the day and the next.',
-    image: '/images/product-6.jpeg',
+    image: '/images/product-6.jpg',
   },
 ];
 
