@@ -4,7 +4,7 @@ import type { MouseEvent } from 'react';
 
 /**
  * The Manifesto / Roma Section Artwork Stage (The Final Section):
- * Displays `_RomaPhoneSection.png` on phone screens and `Roma Section.png` (fabric texture with the
+ * Displays `footer-mobile.png` on phone screens and `Roma Section.png` (fabric texture with the
  * wordmark baked in) on larger screens, so desktop matches the mobile fabric backdrop instead of a
  * flat fill, with a shorter section and tighter gap to the footer row.
  */
@@ -21,10 +21,10 @@ export function Manifesto() {
       data-nav-bg="#33201B"
       className="relative bg-[#33201B] w-full min-h-[90vh] sm:min-h-[100svh] md:min-h-[65vh] flex flex-col justify-between pt-0 pb-0 text-[#1C1614] overflow-hidden"
     >
-      {/* Mobile Phone Artwork: _RomaPhoneSection.png (9:16 vertical portrait graphic) */}
+      {/* Mobile Phone Artwork: footer-mobile.png (9:16 vertical portrait graphic) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/images/_RomaPhoneSection.png"
+        src="/images/footer-mobile.png"
         alt="RORA Tailored Posture mobile artwork"
         className="block md:hidden absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none z-0"
       />
